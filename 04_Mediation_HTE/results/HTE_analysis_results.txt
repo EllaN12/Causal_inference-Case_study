@@ -1,0 +1,273 @@
+================================================================================
+RUNNING HIJOS HTE ANALYSIS
+================================================================================
+
+=======================================================
+  CAUSAL INFERENCE — DATA PIPELINE
+  Restaurant Rating Attribution Analysis
+=======================================================
+
+=======================================================
+PHASE 1 — DATA INGESTION
+=======================================================
+  ✓ Loaded: chefmozparking                       shape=(702, 2)
+  ✓ Loaded: chefmozaccepts                       shape=(1314, 2)
+  ✓ Loaded: userpayment                          shape=(177, 2)
+  ✓ Loaded: geoplaces2                           shape=(130, 21)
+  ✓ Loaded: rating_final                         shape=(1161, 5)
+  ✓ Loaded: usercuisine                          shape=(330, 2)
+  ✓ Loaded: chefmozcuisine                       shape=(916, 2)
+  ✓ Loaded: chefmozhours4                        shape=(2339, 3)
+  ✓ Loaded: userprofile                          shape=(138, 19)
+
+  9 files loaded successfully.
+
+=======================================================
+PHASE 2 — MERGING DATA
+=======================================================
+  Patrons merged:     (4144, 25)
+  Restaurants merged: (901, 26)
+  Combined dataset:   (31559, 50)
+
+=======================================================
+PHASE 2b — CATEGORICAL CLEANING
+=======================================================
+  Cleaned categorical shape: (31559, 36)
+
+=======================================================
+PHASE 3 — FEATURE ENGINEERING
+=======================================================
+  ✓ patron_restaurant_distance  (Haversine km)
+  ✓ location_cluster            (KMeans k=5)
+  ✓ age_group                   (18-25 / 26-35 / 36-50 / 50+)
+  ✓ cuisine_match_score         (Jaccard similarity)
+
+  Final feature matrix: (31559, 52)
+
+=======================================================
+PHASE 3b — MISSING VALUE IMPUTATION
+=======================================================
+  ✓ Mode-imputed 17 categorical columns
+  Remaining nulls after imputation: 0
+
+=======================================================
+  PIPELINE COMPLETE
+=======================================================
+
+
+Loaded dataset for HTE analysis: (31559, 52)
+================================================================================
+HIJOS HTE ANALYSIS: 43 CAUSAL PATHWAYS
+================================================================================
+Treatment: hijos (having children)
+Outcome: rating
+Confounders: ['food_rating', 'service_rating', 'price', 'smoker', 'drink_level', 'dress_preference', 'budget', 'ambience']
+
+Causal pathways:
+  • Direct: 1 pathways
+  • Via_Food: 2 pathways
+  • Via_Service: 3 pathways
+  • Via_Color: 6 pathways
+  • Via_Personality: 1 pathways
+  • Via_Height: 3 pathways
+  • Via_Interest: 1 pathways
+  • TOTAL: 17 pathways
+
+================================================================================
+STEP 1: TOTAL EFFECT (All 43 Pathways Combined)
+================================================================================
+
+Sample size: 31559
+
+Sample breakdown:
+  • Has children: 162 (0.5%)
+  • No children: 31397 (99.5%)
+
+📊 Unadjusted Comparison:
+  • With children: 1.630
+  • Without children: 0.907
+  • Difference: +0.723
+  • T-statistic: 10.556
+  • P-value: 0.0000
+  ✓ Statistically significant
+
+📊 Confounder-Adjusted Estimate:
+  • Adjusted ATE: +0.206
+  • R²: 0.8216
+  • Controlling for: food_rating, service_rating, price, smoker, drink_level, dress_preference, budget, ambience
+  • 95% CI: [+0.138, +0.268]
+
+================================================================================
+STEP 2: PROPENSITY SCORE CALCULATION
+================================================================================
+
+📊 Propensity Score Distribution:
+  Mean: 0.005
+  Std: 0.008
+  Range: [0.000, 0.055]
+
+📊 Common Support:
+  Treated: [0.003, 0.046]
+  Control: [0.000, 0.055]
+  ✓ Overlap: [0.003, 0.046]
+  • 14041 observations (44.5%) in overlap region
+
+================================================================================
+STEP 3: INVERSE PROBABILITY WEIGHTING (IPW)
+================================================================================
+
+📊 IPW Weights:
+count    31559.000000
+mean         1.005396
+std          0.008728
+min          1.000000
+25%          1.000129
+50%          1.000198
+75%          1.007584
+max          1.050001
+Name: ipw_weight, dtype: float64
+
+📊 IPW-Weighted Results:
+  • Weighted mean (with children): 1.630
+  • Weighted mean (without children): 0.909
+  • IPW ATE: +0.720
+  • SE: 0.0489
+  • 95% CI: [+0.627, +0.814]
+  • T-statistic: 14.715
+  • P-value: 0.0000
+  ✓ Statistically significant
+
+================================================================================
+STEP 4: PATHWAY DECOMPOSITION (43 Pathways → 7 Categories)
+================================================================================
+
+Identified 10 unique mediators:
+  ['ambience', 'budget', 'color', 'drink_level', 'food_rating', 'height', 'interest', 'personality', 'service_rating', 'transport']
+
+🔍 Estimating pathway contributions...
+
+  • Direct: 1 pathways
+    ⚠ No mediators available
+
+  • Via_Food: 2 pathways
+    Indirect effect: +0.5058
+
+  • Via_Service: 3 pathways
+    Indirect effect: +0.5045
+
+  • Via_Color: 6 pathways
+    Indirect effect: +0.4510
+
+  • Via_Personality: 1 pathways
+    Indirect effect: +0.4840
+
+  • Via_Height: 3 pathways
+    Indirect effect: +0.4731
+
+  • Via_Interest: 1 pathways
+    Indirect effect: +0.1302
+
+📊 Pathway Decomposition Results:
+================================================================================
+   Pathway_Type  N_Paths  N_Mediators  Indirect_Effect                           Mediators  Proportion
+       Via_Food        2            3         0.505774         food_rating, budget, height    0.198456
+    Via_Service        3            4         0.504490 service_rating, color, transport...    0.197953
+Via_Personality        1            3         0.483978         personality, budget, height    0.189904
+     Via_Height        3            5         0.473113    ambience, height, drink_level...    0.185641
+      Via_Color        6            5         0.451011     color, ambience, drink_level...    0.176969
+   Via_Interest        1            3         0.130173       ambience, transport, interest    0.051077
+================================================================================
+
+💡 Key Insights:
+  • STRONGEST pathway: Via_Food
+    - 2 pathways, 3 mediators
+    - Contributes +0.5058 (19.8%)
+
+================================================================================
+STEP 5: HETEROGENEOUS TREATMENT EFFECTS
+================================================================================
+
+Estimating HTE by: Business_hours
+
+📊 Heterogeneous Effects by Business_hours:
+================================================================================
+ Subgroup  N_Total  N_Treated  N_Control      ATE      P_value  Significant
+  Morning      607         15        592 1.476351 5.718469e-14         True
+    Night     3096         26       3070 0.803358 2.176594e-06         True
+  Evening     4016         42       3974 0.803137 1.259966e-08         True
+Afternoon     7574         44       7530 0.757998 3.271403e-10         True
+ Full Day    16266         35      16231 0.429557 3.761671e-03         True
+================================================================================
+
+💡 Heterogeneity Insights:
+  • STRONGEST effect in: Morning (ATE = +1.476)
+  • WEAKEST effect in: Full Day (ATE = +0.430)
+  • Range: 1.047 rating points
+
+📊 Creating comprehensive visualization...
+✓ Visualization saved to 'HTE_analysis_summary.png'
+
+================================================================================
+COMPREHENSIVE SUMMARY: HIJOS IMPACT ON RATING
+================================================================================
+
+🎯 TOTAL EFFECT (All 43 Pathways):
+  • Unadjusted ATE: +0.723
+  • Adjusted ATE: +0.206
+  • P-value: 0.0000
+
+  ✓ Having children significantly INCREASES rating by 0.206 points
+
+📊 CAUSAL ESTIMATE (IPW):
+  • IPW ATE: +0.720
+  • 95% CI: [+0.627, +0.814]
+  • P-value: 0.0000
+  • This is the CAUSAL effect (confounding removed)
+
+🛤️  PATHWAY DECOMPOSITION:
+  • 43 pathways grouped into 6 categories
+
+  STRONGEST pathway category:
+    • Via_Food
+    • Contribution: +0.5058
+    • 2 pathways, 3 mediators
+
+  Via_Food:
+    • Effect: +0.5058 (19.8%)
+    • 2 pathways through: food_rating, budget, height
+
+  Via_Service:
+    • Effect: +0.5045 (19.8%)
+    • 3 pathways through: service_rating, color, transport...
+
+  Via_Personality:
+    • Effect: +0.4840 (19.0%)
+    • 1 pathways through: personality, budget, height
+
+  Via_Height:
+    • Effect: +0.4731 (18.6%)
+    • 3 pathways through: ambience, height, drink_level...
+
+  Via_Color:
+    • Effect: +0.4510 (17.7%)
+    • 6 pathways through: color, ambience, drink_level...
+
+  Via_Interest:
+    • Effect: +0.1302 (5.1%)
+    • 1 pathways through: ambience, transport, interest
+
+👥 HETEROGENEOUS EFFECTS:
+  • Effect varies by subgroup!
+  • STRONGEST in: Morning (ATE = +1.476)
+  • WEAKEST in: Full Day (ATE = +0.430)
+  • Range: 1.047 rating points
+
+💡 BUSINESS IMPLICATIONS:
+  • Families rate restaurants +0.206 points higher
+  • Invest in family-friendly features:
+    - Food quality: +0.5058 effect (kids menu, portions)
+    - Service quality: +0.5045 effect (attentive, fast)
+
+================================================================================
+
+✓ HTE analysis completed successfully.

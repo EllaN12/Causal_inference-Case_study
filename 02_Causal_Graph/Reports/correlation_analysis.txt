@@ -1,0 +1,179 @@
+
+✓ Using pre-defined correlation_edges
+
+================================================================================
+CAUSAL GRAPH CONSTRUCTION - TEST CASE 2
+================================================================================
+
+✓ Causal graph created:
+  • Nodes: 31
+  • Edges: 78
+  • Outcome variable: 'rating'
+
+✓ Identified 7 direct treatment variables:
+  (Variables with direct causal effect on 'rating')
+  1. color → rating
+  2. food_rating → rating
+  3. height → rating
+  4. hijos → rating
+  5. interest → rating
+  6. personality → rating
+  7. service_rating → rating
+
+📊 Graph Statistics:
+  • Average degree: 5.03
+  • Is DAG (Directed Acyclic Graph): False
+  ⚠ Warning: Graph contains cycles!
+  • Number of cycles: 53
+  • Example cycle: ['patrons_restaurant_distance', 'age_group']
+
+📊 Creating causal graph visualization...
+
+📊 Causal graph visualization saved to '/Users/ellandalla/Documents/GitHub/Causal_inference-Case_study/venv/Reports/causal_graph.png'
+✅ Legend positioned OUTSIDE the graph on the right side
+
+📋 Node Categories in Graph:
+  • Outcome: 1 node(s)
+  • User Variables: 10 node(s)
+  • Restaurant Variables: 13 node(s)
+  • Direct Factors (treatments): 7 node(s)
+    Treatments: color, food_rating, height, hijos, interest, personality, service_rating
+✓ Visualization complete!
+
+================================================================================
+GRAPH CONSTRUCTION COMPLETE
+================================================================================
+
+✓ Ready for:
+  • Attribution analysis (which treatments matter most?)
+  • Mediation analysis (indirect effects through other variables)
+  • Path analysis (specific causal pathways)
+  • Confounder identification (backdoor paths)
+
+================================================================================
+CAUSAL GRAPH SUMMARY
+================================================================================
+
+📊 Basic Statistics:
+  • Total variables: 31
+  • Total relationships: 78
+  • Outcome variable: rating
+
+🎯 Direct Causes of rating (7):
+  • color
+  • food_rating
+  • height
+  • hijos
+  • interest
+  • personality
+  • service_rating
+
+🌟 Most Influential Variables (by out-degree):
+  • height: affects 8 other variable(s)
+  • restaurant_specialty: affects 8 other variable(s)
+  • weight: affects 6 other variable(s)
+  • hijos: affects 5 other variable(s)
+  • ambience: affects 5 other variable(s)
+  • interest: affects 4 other variable(s)
+  • drink_level: affects 4 other variable(s)
+  • personality: affects 3 other variable(s)
+  • area: affects 3 other variable(s)
+  • budget: affects 3 other variable(s)
+
+📍 Most Influenced Variables (by in-degree):
+  • color: affected by 8 other variable(s)
+  • rating: affected by 7 other variable(s)
+  • transport: affected by 7 other variable(s)
+  • restaurant_specialty: affected by 6 other variable(s)
+  • height: affected by 4 other variable(s)
+  • food_rating: affected by 4 other variable(s)
+  • ambience: affected by 4 other variable(s)
+  • drink_level: affected by 3 other variable(s)
+  • weight: affected by 3 other variable(s)
+  • activity: affected by 3 other variable(s)
+
+================================================================================
+
+================================================================================
+KEY CAUSAL RELATIONSHIPS
+================================================================================
+
+--- color → rating ---
+  Mediators: ['service_rating']
+  Potential confounders: ['hijos', 'interest', 'personality']
+
+--- food_rating → rating ---
+  No mediators (direct effect only)
+  Potential confounders: ['height', 'hijos', 'personality']
+
+--- height → rating ---
+  Mediators: ['ambience', 'budget', 'color', 'drink_level', 'food_rating', 'interest', 'personality', 'service_rating', 'transport', 'weight']
+  Potential confounders: ['interest']
+
+--- hijos → rating ---
+  Mediators: ['ambience', 'budget', 'color', 'drink_level', 'food_rating', 'height', 'interest', 'personality', 'service_rating', 'transport', 'weight']
+  No common causes identified
+
+--- interest → rating ---
+  Mediators: ['ambience', 'budget', 'color', 'drink_level', 'food_rating', 'height', 'personality', 'service_rating', 'transport', 'weight']
+  No common causes identified
+
+================================================================================
+✅ CAUSAL ANALYSIS COMPLETE - READY FOR ATTRIBUTION
+================================================================================
+Successfully loaded: chefmozparking with shape (702, 2)
+Successfully loaded: chefmozaccepts with shape (1314, 2)
+Successfully loaded: userpayment with shape (177, 2)
+Successfully loaded: geoplaces2 with shape (130, 21)
+Successfully loaded: rating_final with shape (1161, 5)
+Successfully loaded: usercuisine with shape (330, 2)
+Successfully loaded: chefmozcuisine with shape (916, 2)
+Successfully loaded: chefmozhours4 with shape (2339, 3)
+Successfully loaded: userprofile with shape (138, 19)
+
+Available dataframes: 9
+- chefmozparking
+- chefmozaccepts
+- userpayment
+- geoplaces2
+- rating_final
+- usercuisine
+- chefmozcuisine
+- chefmozhours4
+- userprofile
+
+================================================================================
+CAUSAL GRAPH CONSTRUCTION - TEST CASE 2
+================================================================================
+
+✓ Causal graph created:
+  • Nodes: 31
+  • Edges: 78
+  • Outcome variable: 'rating'
+
+✓ Identified 7 direct treatment variables:
+  (Variables with direct causal effect on 'rating')
+  1. color → rating
+  2. food_rating → rating
+  3. height → rating
+  4. hijos → rating
+  5. interest → rating
+  6. personality → rating
+  7. service_rating → rating
+
+📊 Graph Statistics:
+  • Average degree: 5.03
+  • Is DAG (Directed Acyclic Graph): False
+  ⚠ Warning: Graph contains cycles!
+  • Number of cycles: 53
+  • Example cycle: ['patrons_restaurant_distance', 'age_group']
+
+================================================================================
+GRAPH CONSTRUCTION COMPLETE
+================================================================================
+
+✓ Ready for:
+  • Attribution analysis (which treatments matter most?)
+  • Mediation analysis (indirect effects through other variables)
+  • Path analysis (specific causal pathways)
+  • Confounder identification (backdoor paths)

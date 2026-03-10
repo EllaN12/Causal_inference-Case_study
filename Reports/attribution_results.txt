@@ -1,0 +1,96 @@
+================================================================================
+Causal Graph Attribution Results
+================================================================================
+
+Outcome Variable: rating
+Number of Nodes: 21
+Number of Edges: 28
+
+Direct Effects:
+--------------------------------------------------------------------------------
+
+Treatment: food_rating
+  Causal Estimate: 0.5488168293491461
+  Estimate Details: *** Causal Estimate ***
+
+## Identified estimand
+Estimand type: EstimandType.NONPARAMETRIC_ATE
+
+### Estimand : 1
+Estimand name: backdoor
+Estimand expression:
+      d                                           
+──────────────(E[rating|personality,weight,color])
+d[food_rating]                                    
+Estimand assumption 1, Unconfoundedness: If U→{food_rating} and U→rating then P(rating|food_rating,personality,weight,color,U) = P(rating|food_rating,personality,weight,color)
+
+## Realized estimand
+b: rating~food_rating+personality+weight+color+food_rating*User_cuisine+food_rating*service_rating+food_rating*age_group
+Target units: 
+
+## Estimate
+Mean value: 0.5488168293491461
+### Conditional Estimates
+User_cuisine  __categorical__service_rating  age_group
+Afghan        (-0.001, 1.0]                  36-50        0.515100
+                                             50+          0.636274
+              (1.0, 2.0]                     36-50        0.780399
+                                             50+          0.870306
+African       (-0.001, 1.0]                  36-50        0.451934
+                                                            ...   
+Tunisian      (-0.001, 1.0]                  36-50        0.451934
+Turkish       (-0.001, 1.0]                  36-50        0.215026
+              (1.0, 2.0]                     36-50        0.496567
+Vegetarian    (-0.001, 1.0]                  36-50        0.451934
+Vietnamese    (-0.001, 1.0]                  36-50        0.451934
+Length: 222, dtype: float64
+
+Treatment: service_rating
+  Causal Estimate: 0.5329015839727878
+  Estimate Details: *** Causal Estimate ***
+
+## Identified estimand
+Estimand type: EstimandType.NONPARAMETRIC_ATE
+
+### Estimand : 1
+Estimand name: backdoor
+Estimand expression:
+        d                                     
+─────────────────(E[rating|personality,color])
+d[service_rating]                             
+Estimand assumption 1, Unconfoundedness: If U→{service_rating} and U→rating then P(rating|service_rating,personality,color,U) = P(rating|service_rating,personality,color)
+
+## Realized estimand
+b: rating~service_rating+personality+color+service_rating*hijos+service_rating*User_cuisine+service_rating*food_rating+service_rating*marital_status+service_rating*activity+service_rating*transport+service_rating*age_group+service_rating*height+service_rating*weight
+Target units: 
+
+## Estimate
+Mean value: 0.5329015839727878
+### Conditional Estimates
+hijos  User_cuisine  __categorical__food_rating  marital_status  activity      transport  age_group  __categorical__height  __categorical__weight
+?      Afghan        (-0.001, 1.0]               ?               ?             ?          50+        (1.199, 1.54]          (39.999, 55.0]           0.667994
+                     (1.0, 2.0]                  ?               ?             ?          50+        (1.199, 1.54]          (39.999, 55.0]           0.826113
+       Chinese       (-0.001, 1.0]               single          professional  public     26-35      (1.78, 2.0]            (76.0, 120.0]            0.593291
+       Mexican       (-0.001, 1.0]               ?               ?             ?          36-50      (1.199, 1.54]          (39.999, 55.0]           0.285933
+                                                                                                     (1.54, 1.69]           (39.999, 55.0]           0.422859
+                                                                                                                                                       ...   
+kids   Tibetan       (-0.001, 1.0]               single          student       on foot    36-50      (1.199, 1.54]          (55.0, 66.0]             0.460736
+       Tunisian      (-0.001, 1.0]               single          student       on foot    36-50      (1.199, 1.54]          (55.0, 66.0]             0.460736
+       Turkish       (-0.001, 1.0]               single          student       on foot    36-50      (1.199, 1.54]          (55.0, 66.0]            -0.103914
+       Vegetarian    (-0.001, 1.0]               single          student       on foot    36-50      (1.199, 1.54]          (55.0, 66.0]             0.460736
+       Vietnamese    (-0.001, 1.0]               single          student       on foot    36-50      (1.199, 1.54]          (55.0, 66.0]             0.460736
+Length: 450, dtype: float64
+
+
+Naive Comparison:
+--------------------------------------------------------------------------------
+
+Treatment: food_rating
+  Causal Effect: 0.5488168293491461
+  Naive Correlation: 0.8637
+  Difference: -0.3149
+
+Treatment: service_rating
+  Causal Effect: 0.5329015839727878
+  Naive Correlation: 0.8516
+  Difference: -0.3187

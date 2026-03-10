@@ -170,13 +170,14 @@ def data_preprocessing():
     cat_data_df[columns_with_missing_values_cat] = imputer.fit_transform(cat_data_df[columns_with_missing_values_cat]) 
     
     final_data_df = pd.concat([numerical_data_df, cat_data_df], axis=1)
+    
+    print(final_data_df.head())
 
     
     return final_data_df
 
 
-data_preprocessing()
-
+print(data_preprocessing().head())
 
 
 #%%

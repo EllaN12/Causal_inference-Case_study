@@ -1,0 +1,67 @@
+
+=======================================================
+  CAUSAL INFERENCE — DATA PIPELINE
+  Restaurant Rating Attribution Analysis
+=======================================================
+
+=======================================================
+PHASE 1 — DATA INGESTION
+=======================================================
+  ✓ Loaded: chefmozparking                       shape=(702, 2)
+  ✓ Loaded: chefmozaccepts                       shape=(1314, 2)
+  ✓ Loaded: userpayment                          shape=(177, 2)
+  ✓ Loaded: geoplaces2                           shape=(130, 21)
+  ✓ Loaded: rating_final                         shape=(1161, 5)
+  ✓ Loaded: usercuisine                          shape=(330, 2)
+  ✓ Loaded: chefmozcuisine                       shape=(916, 2)
+  ✓ Loaded: chefmozhours4                        shape=(2339, 3)
+  ✓ Loaded: userprofile                          shape=(138, 19)
+
+  9 files loaded successfully.
+
+=======================================================
+PHASE 2 — MERGING DATA
+=======================================================
+  Patrons merged:     (4144, 25)
+  Restaurants merged: (901, 26)
+  Combined dataset:   (31559, 50)
+
+=======================================================
+PHASE 2b — CATEGORICAL CLEANING
+=======================================================
+  Cleaned categorical shape: (31559, 36)
+
+=======================================================
+PHASE 3 — FEATURE ENGINEERING
+=======================================================
+  ✓ patron_restaurant_distance  (Haversine km)
+  ✓ location_cluster            (KMeans k=5)
+  ✓ age_group                   (18-25 / 26-35 / 36-50 / 50+)
+  ✓ cuisine_match_score         (Jaccard similarity)
+
+  Final feature matrix: (31559, 52)
+
+=======================================================
+PHASE 3b — MISSING VALUE IMPUTATION
+=======================================================
+  ✓ Mode-imputed 17 categorical columns
+  Remaining nulls after imputation: 0
+
+  ✓ Final dataset saved: /Users/ellandalla/Documents/GitHub/Causal_inference-Case_study/venv/01_Data_Analysis/final_data.pkl
+    Shape: (31559, 52)
+    Columns: ['p.latitude', 'p.longitude', 'birth_year', 'weight', 'height', 'placeID', 'rating', 'food_rating', 'service_rating', 'latitude', 'longitude', 'userID', 'smoker', 'drink_level', 'dress_preference', 'ambience', 'transport', 'marital_status', 'hijos', 'interest', 'personality', 'religion', 'activity', 'color', 'budget', 'Upayment', 'User_cuisine', 'the_geom_meter', 'restaurant_name', 'address', 'city', 'state', 'country', 'zip', 'alcohol', 'smoking_area', 'dress_code', 'accessibility', 'price', 'Rambience', 'franchise', 'area', 'other_services', 'restaurant_payment', 'parking_lot', 'restaurant_specialty', 'Business_hours', 'patron_restaurant_distance', 'location_cluster', 'age', 'age_group', 'cuisine_match_score']
+
+=======================================================
+  PIPELINE COMPLETE
+=======================================================
+
+   p.latitude  p.longitude  birth_year  ...  age  age_group  cuisine_match_score
+0   22.139997  -100.978803        1989  ...   37      36-50                  0.0
+1   22.139997  -100.978803        1989  ...   37      36-50                  0.0
+2   22.139997  -100.978803        1989  ...   37      36-50                  0.0
+3   22.139997  -100.978803        1989  ...   37      36-50                  0.0
+4   22.139997  -100.978803        1989  ...   37      36-50                  0.0
+
+[5 rows x 52 columns]
+
+Final shape: (31559, 52)
