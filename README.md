@@ -1,5 +1,6 @@
 # Causal Inference Case Study: Restaurant Rating Attribution Analysis
 
+
 ## Project Overview
 
 This project applies **causal inference** techniques to a restaurant recommendation dataset to answer a core business question: **What factors causally drive overall restaurant ratings, and through which pathways do they operate?**
@@ -8,7 +9,7 @@ Rather than relying on correlations alone, this analysis constructs a formal cau
 
 ### Business Context
 
-This project mirrors the analytical challenges faced by data science teams at companies like Google Ads & Commerce Finance — where understanding *why* metrics move (not just *that* they move) is essential for building scalable decision-making infrastructure. The methods demonstrated here translate directly to questions like revenue attribution, user behavior modeling, and A/B test analysis in production environments.
+This project mirrors the analytical challenges faced by data science teams at companies  — where understanding *why* metrics move (not just *that* they move) is essential for building scalable decision-making infrastructure. The methods demonstrated here translate directly to questions like revenue attribution, user behavior modeling, and A/B test analysis in production environments.
 
 ---
 
@@ -244,6 +245,9 @@ This project directly demonstrates:
 - **Reproducibility**: Path-anchored outputs, cached pipeline data, and rerunnable scripts from any working directory
 
 ---
+
+## Data Source:
+UC Irvine Machine Learning Repository: https://archive.ics.uci.edu/dataset/232/restaurant+consumer+data
 
 ## Author
 
