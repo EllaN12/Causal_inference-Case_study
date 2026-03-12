@@ -26,26 +26,22 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 import sys
 
-_MODULE_DIR = Path(__file__).resolve().parent
+_MODULE_DIR  = Path(__file__).resolve().parent          # 02_Causal_Graph/
 _PROJECT_DIR = _MODULE_DIR.parent
+_REPORTS_DIR = _MODULE_DIR / "Reports"
+_REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Make sure both pipeline locations are importable from this folder.
 for candidate in [_PROJECT_DIR, _PROJECT_DIR / "venv", _PROJECT_DIR / "01_Data_Analysis"]:
     if candidate.exists() and str(candidate) not in sys.path:
         sys.path.insert(0, str(candidate))
 
-from data_pipeline import run_pipeline
-from causal_analysis_module.analysis import data_preprocessing
+from data_pipeline import get_initial_data                         # Phase 1 — canonical data source
 
 
-try:
-    # Preferred source: unified ETL pipeline output.
-    df = run_pipeline(save_output=True, run_eda_report=False)
-except Exception:
-    # Fallback for legacy behavior if pipeline run fails.
-    df = data_preprocessing()
+df = get_initial_data()
 eda_report = yd.ProfileReport(df, title="Profiling_Report", explorative=True)
-eda_report.to_file(os.path.abspath("Reports/eda_report.html"))
+eda_report.to_file(str(_REPORTS_DIR / "eda_report.html"))
 
 
 def webscrape_report():
@@ -60,7 +56,7 @@ def webscrape_report():
         and values are the corresponding "other fields" information.
     """
 
-    file_path = os.path.abspath("Reports/eda_report.html")
+    file_path = str(_REPORTS_DIR / "eda_report.html")
     correlation_dict = {}
     html = None
     driver = None

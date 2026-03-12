@@ -12,6 +12,9 @@ import seaborn as sns
 import warnings
 warnings.filterwarnings('ignore')
 
+_RESULTS_DIR = Path(__file__).resolve().parent / "results"   # 04_Mediation_HTE/results/
+_RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+
 # Canonical pathway map used by decomposition and reporting steps.
 HIJOS_PATHWAYS = {
     "Direct": [
@@ -738,10 +741,13 @@ class HijosHTEAnalyzer:
         return het_df
     
     
-    def visualize_results(self, save_path='hijos_hte_analysis.png'):
+    def visualize_results(self, save_path=None):
         """
         Visualize HTE analysis results.
         """
+        if save_path is None:
+            save_path = str(_RESULTS_DIR / "hijos_hte_analysis.png")
+
         print(f"\n📊 Creating comprehensive visualization...")
         
         fig, axes = plt.subplots(2, 2, figsize=(16, 12))
@@ -961,10 +967,13 @@ if __name__ == "__main__":
     print("=" * 80)
 
     try:
-        # Reuse centralized data preparation pipeline.
-        from data_pipeline import run_pipeline
+        # Phase 1 — canonical data source.
+        _hte_pipeline_dir = Path(__file__).resolve().parents[1] / "01_Data_Analysis"
+        if str(_hte_pipeline_dir) not in sys.path:
+            sys.path.insert(0, str(_hte_pipeline_dir))
+        from data_pipeline import get_initial_data
 
-        df = run_pipeline(save_output=False, run_eda_report=False)
+        df = get_initial_data()
         print(f"\nLoaded dataset for HTE analysis: {df.shape}")
 
         confounder_candidates = [
@@ -989,7 +998,7 @@ if __name__ == "__main__":
         if subgroup_var:
             analyzer.estimate_heterogeneous_effects(subgroup_var=subgroup_var)
 
-        analyzer.visualize_results(save_path="HTE_analysis_summary.png")
+        analyzer.visualize_results(save_path=str(_RESULTS_DIR / "HTE_analysis_summary.png"))
         analyzer.generate_summary_report()
 
         print("\n✓ HTE analysis completed successfully.")

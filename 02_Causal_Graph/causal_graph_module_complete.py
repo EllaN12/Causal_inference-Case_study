@@ -16,6 +16,11 @@ from matplotlib.patches import Patch
 import pandas as pd
 import numpy as np
 import os
+from pathlib import Path
+
+_HERE        = Path(__file__).resolve().parent          # 02_Causal_Graph/
+_REPORTS_DIR = _HERE / "Reports"
+_REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 #CAUSAL EDGES: defined from the correlation analysis 
@@ -315,7 +320,7 @@ def visualize_causal_graph(graph, treatments=None, outcome='rating',
     
     # Set default save path if not provided
     if save_path is None:
-        save_path = os.path.abspath(os.path.join('Reports', 'causal_graph.png'))
+        save_path = str(_REPORTS_DIR / 'causal_graph.png')
     
     # Ensure save_path is a string (not None)
     save_path = str(save_path)
@@ -465,11 +470,8 @@ def visualize_causal_graph(graph, treatments=None, outcome='rating',
 
     # Ensure save_path is set (safety check)
     if save_path is None:
-        save_path = os.path.abspath(os.path.join('Reports', 'causal_graph.png'))
-        dir_path = os.path.dirname(save_path)
-        if dir_path:
-            os.makedirs(dir_path, exist_ok=True)
-    
+        save_path = str(_REPORTS_DIR / 'causal_graph.png')
+
     # Ensure save_path is a string (not None)
     save_path = str(save_path)
     

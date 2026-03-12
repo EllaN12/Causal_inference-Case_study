@@ -41,10 +41,16 @@ warnings.filterwarnings("ignore")
 # ============================================================
 # CONFIGURATION
 # ============================================================
-BASE_DIR   = Path(__file__).resolve().parent
-RAW_DIR    = BASE_DIR / "00_Raw_Data"
-OUT_DIR    = BASE_DIR / "01_Data_Analysis"
-REPORT_DIR = BASE_DIR / "Reports" / "EDA_Reports"
+BASE_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = BASE_DIR.parent
+OUT_DIR = PROJECT_ROOT / "01_Data_Analysis"
+REPORT_DIR = PROJECT_ROOT / "Reports" / "EDA_Reports"
+
+# Support both historical and current raw-data layouts.
+if (PROJECT_ROOT / "00_Raw_Data").exists():
+    RAW_DIR = PROJECT_ROOT / "00_Raw_Data"
+else:
+    RAW_DIR = PROJECT_ROOT / "data" / "raw"
 
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 REPORT_DIR.mkdir(parents=True, exist_ok=True)
@@ -393,6 +399,27 @@ def run_pipeline(
     print("="*55 + "\n")
 
     return final_df
+
+
+# ============================================================
+# SHARED DATA ACCESS FOR DOWNSTREAM MODULES
+# ============================================================
+def get_initial_data(
+    force_refresh: bool = False,
+    run_eda_report: bool = False,
+) -> pd.DataFrame:
+    """
+    Load the canonical initial dataset used by 03_/04_/05_ analyses.
+
+    - Default: load `01_Data_Analysis/final_data.pkl`
+    - If missing (or force_refresh=True): rebuild it via `run_pipeline`
+    """
+    out_path = OUT_DIR / "final_data.pkl"
+
+    if force_refresh or not out_path.exists():
+        return run_pipeline(save_output=True, run_eda_report=run_eda_report)
+
+    return pd.read_pickle(out_path)
 
 
 # ============================================================
