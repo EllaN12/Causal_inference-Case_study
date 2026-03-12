@@ -86,11 +86,11 @@ All downstream analysis imports data exclusively via `get_initial_data()` from `
 
 ### 1. Data Ingestion & Merging
 
-Nine relational CSV files are loaded and merged through SQL-style operations:
+Nine relational CSV files are loaded and merged using `pandas.merge()` with left joins:
 
-- **User data**: `userprofile` LEFT JOIN `userpayment` LEFT JOIN `usercuisine` LEFT JOIN `rating_final`
-- **Restaurant data**: `geoplaces2` LEFT JOIN `chefmozaccepts` LEFT JOIN `chefmozparking` LEFT JOIN `chefmozcuisine` LEFT JOIN `chefmozhours4`
-- **Combined**: User data LEFT JOIN Restaurant data ON `placeID`
+- **User data**: `userprofile` → left merge `userpayment` → left merge `usercuisine` → left merge `rating_final`
+- **Restaurant data**: `geoplaces2` → left merge `chefmozaccepts` → left merge `chefmozparking` → left merge `chefmozcuisine` → left merge `chefmozhours4`
+- **Combined**: User data left merge Restaurant data on `placeID`
 - **Output**: 31,559 rows × 52 features
 
 ### 2. Feature Engineering
