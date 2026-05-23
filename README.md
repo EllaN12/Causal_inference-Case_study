@@ -22,20 +22,6 @@ This project mirrors the analytical challenges faced by data science teams at co
 
 ---
 
-## Technical Skills Demonstrated
-
-| Skill Area | Tools & Methods |
-|---|---|
-| **Causal Inference** | DoWhy, DAG construction, backdoor criterion, propensity score weighting, mediation analysis, IPW |
-| **Python** | pandas, numpy, scikit-learn, networkx, matplotlib, seaborn, scipy, statsmodels |
-| **Statistical Methods** | OLS, logistic regression, bootstrap confidence intervals, Shapley value decomposition, IPW estimation, F-tests, ATE estimation |
-| **Data Engineering** | Multi-source data merging (9 CSV files), feature engineering (geodesic distance, KMeans clustering, cuisine matching), categorical encoding, missing value imputation |
-| **SQL-Adjacent Skills** | Complex joins across relational tables (users, restaurants, ratings, cuisines, payments, parking, hours) |
-| **Visualization** | Causal graph visualization, mediation path diagrams, effect decomposition charts, attribution comparison plots |
-| **EDA & Profiling** | Automated profiling with ydata-profiling, web scraping of EDA reports for correlation extraction |
-
----
-
 ## Project Structure
 
 ```
@@ -73,7 +59,7 @@ Causal_inference-Case_study/
 │       ├── HTE_analysis_summary.png
 │       └── HTE_analysis_results.txt
 │
-└── causal_case_study_interview_prep/      # Legacy exploratory work (archived)
+└── causal_case_study_interview_prep/      # Archived exploratory work
     ├── data/raw/                          # 9 source CSV files
     └── Reports/                           # Earlier output artifacts
 ```
@@ -234,18 +220,6 @@ All scripts import data exclusively from `01_Data_Analysis/data_pipeline.py` via
 
 ---
 
-## Relevance to Data Science Roles
-
-This project directly demonstrates:
-
-- **Causal inference at scale**: Formal DAG construction, backdoor identification, and propensity-weighted estimation — not just correlation
-- **Multi-table data engineering**: 9-source merging pipeline mirroring SQL JOIN patterns with feature engineering
-- **Scalable modular design**: Each phase is an importable module with a canonical data interface (`get_initial_data()`) and deterministic output paths
-- **Business-grounded insights**: Every statistical result is paired with actionable interpretation (e.g., "invest in family-friendly morning features" from HTE results)
-- **Reproducibility**: Path-anchored outputs, cached pipeline data, and rerunnable scripts from any working directory
-
----
-
 ## Data Source:
 UC Irvine Machine Learning Repository: https://archive.ics.uci.edu/dataset/232/restaurant+consumer+data
 
@@ -258,4 +232,4 @@ ndallaella@gmail.com
 
 ## License
 
-This project is for portfolio and educational purposes.
+MIT License. See LICENSE for details.
