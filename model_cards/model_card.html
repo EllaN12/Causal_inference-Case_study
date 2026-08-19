@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+<html lang="en">
+<head>
+<style>
+  h1 {text-align: center;}
+  .row {
+    display: flex;
+  }
+  .col {
+    flex: 1;
+  }
+  .card {
+    padding: 1em;
+    border: 1px solid #DADCE0;
+    margin: 10px;
+  }
+  .img-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    text-align: center;
+  }
+  .img-item {
+    flex: 1;
+  }
+  .center {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  table {
+    margin-bottom: 10px;
+  }
+  table th {
+    background: #eee;
+  }
+  table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    height: 30px;
+    text-align: left;
+    padding: 5px 10px
+  }
+  caption { font-weight: bold; }
+</style>
+<title>
+  Model Card for Restaurant Rating Causal Attribution — DoWhy, Mediation &amp; HTE
+</title>
+</head>
+<body>
+  <h1>
+    Model Card for Restaurant Rating Causal Attribution — DoWhy, Mediation &amp; HTE
+  </h1>
+    <div class="row">
+    
+      <div class="col card">
+        <h2>Model Details</h2>
+          <h3>Overview</h3>
+              Applies causal inference to a restaurant recommendation dataset (31,559 rows x 52 features from 9 merged relational files) to identify what causally drives overall ratings and through which pathways. Constructs a 31-node / 78-edge causal graph, estimates effects via DoWhy backdoor identification against a Shapley-value correlational baseline, then decomposes effects with Baron &amp; Kenny mediation analysis and IPW-based heterogeneous treatment effects across 17 pathways.
+          <h3>Version</h3>
+              
+  
+    <div>name: 1.0.0</div>
+
+              
+  
+
+              
+  
+
+          
+          <h3>Documentation</h3>
+              Dataset: UCI Restaurant &amp; Consumer Data (9 CSV files merged to 31,559 x 52) (https://archive.ics.uci.edu/dataset/232/restaurant+consumer+data) — Sensitive data: Contains consumer demographic attributes used directly as treatments — height, personality, color preference, and whether the user has children (hijos). These are person-level characteristics and warrant care in interpretation and reuse.
+          <h3>Owners</h3>
+            
+              Ella Ndalla, ndallaella@gmail.com
+            
+          
+          
+            <h3>Licenses</h3>
+              <ul>
+
+                <li>MIT</li>
+
+              </ul>
+          
+            <h3>References</h3>
+              <ul>
+              
+                <li><a href="https://archive.ics.uci.edu/dataset/232/restaurant+consumer+data">https://archive.ics.uci.edu/dataset/232/restaurant+consumer+data</a></li>
+              
+              </ul>
+          
+            <h3>Citations</h3>
+              <ul>
+              
+                <li>Ella Ndalla. Restaurant Rating Causal Attribution — DoWhy, Mediation &amp; HTE. GitHub repository: Causal_inference-Case_study.</li>
+              
+              </ul>
+        </div>
+      
+      
+      
+      <div class="col card">
+        <h2>Considerations</h2>
+          
+            <h3>Intended Users</h3>
+              
+  
+  <ul>
+  
+    <li>Data scientists working on attribution and experimentation</li>
+  
+    <li>Portfolio reviewers</li>
+  
+  </ul>
+
+          
+          
+            <h3>Use Cases</h3>
+              
+  
+  <ul>
+  
+    <li>Demonstrating how graph-informed causal attribution differs from naive correlation-based attribution.</li>
+  
+    <li>Methodological reference for mediation analysis and heterogeneous treatment effects.</li>
+  
+  </ul>
+
+          
+          
+            <h3>Limitations</h3>
+              
+  
+  <ul>
+  
+    <li>The causal graph contains 53 detected cycles and is therefore NOT a strict DAG. Cycles arise from feature-engineering interactions and are acknowledged, not resolved, in the DoWhy identification step — this weakens every identification claim.</li>
+  
+    <li>Causal structure is assumed from domain knowledge plus automated correlation profiling; unmeasured confounding is not ruled out.</li>
+  
+    <li>Observational data only — no randomization or natural experiment supports the backdoor adjustment.</li>
+  
+    <li>Demographic treatments (height, color preference, personality) are proxies with no plausible direct causal mechanism on restaurant ratings; significant estimates for them should be read as evidence of residual confounding, not as real effects.</li>
+  
+  </ul>
+
+          
+          
+            <h3>Tradeoffs</h3>
+              
+  
+  <ul>
+  
+    <li>DoWhy backdoor estimates are substantially more conservative than naive correlations (food_rating: 0.549 vs. 0.864) — the graph-informed estimate trades apparent effect size for defensibility.</li>
+  
+    <li>IPW-based HTE gives subgroup detail but inflates variance in small strata.</li>
+  
+  </ul>
+
+          
+          
+            <h3>Ethical Considerations</h3>
+              <ul>
+                <li>
+                  <div>Risk: Discriminatory or spurious conclusions if demographic &#39;treatments&#39; (hijos, height, personality, color) are read as actionable causal levers.</div>
+                  <div>Mitigation Strategy: All demographic effects are reported alongside mediation decomposition showing the substantive effects flow through food and service quality; the cycle-contaminated graph is disclosed.</div>
+                </li>
+                <li>
+                  <div>Risk: Business decisions made on non-identified estimates.</div>
+                  <div>Mitigation Strategy: Naive Shapley attribution is reported side by side with the DoWhy estimate so the confounding gap is visible.</div>
+                </li> </ul>
+      </div>
+      
+    </div>
+    
+      
+  <div class="col card">
+    <h2>Datasets</h2>
+    
+      <div class="row">
+        <div class="col card">
+          <h3>UCI Restaurant &amp; Consumer Data (9 CSV files merged to 31,559 x 52)</h3>
+            
+            <a href="https://archive.ics.uci.edu/dataset/232/restaurant+consumer+data">https://archive.ics.uci.edu/dataset/232/restaurant+consumer+data</a>
+            
+        </div>
+      </div>
+    
+  </div>
+
+    
+    
+      
+<div class="col card">
+  <h2>Quantitative Analysis</h2>
+  
+    
+<table class="center">
+  <caption>Performance Metrics</caption>
+  <tr><th>Name</th><th>Value</th></tr>
+
+  <tr><td>
+Causal graph
+</td><td>
+31 nodes, 78 edges, 7 direct treatments on rating, 53 cycles detected
+</td></tr>
+
+  <tr><td>
+Shapley attribution — food + service quality
+</td><td>
+~84% of treatment attribution
+</td></tr>
+
+  <tr><td>
+DoWhy causal effect — food_rating
+</td><td>
+0.549 (vs. 0.864 naive correlation)
+</td></tr>
+
+  <tr><td>
+Mediation — activity effect through food/service quality
+</td><td>
+100.2% (fully mediated)
+</td></tr>
+
+  <tr><td>
+IPW ATE — hijos (has children)
+</td><td>
++0.720
+</td></tr>
+
+  <tr><td>
+Strongest HTE — morning-opening restaurants x hijos
+</td><td>
+ATE +1.476
+</td></tr>
+
+</table>
+
+  
+  
+</div>
+
+    
+</body>
+</html>

@@ -1,0 +1,36 @@
+
+«	
+?Restaurant Rating Causal Attribution â€” DoWhy, Mediation & HTEØApplies causal inference to a restaurant recommendation dataset (31,559 rows x 52 features from 9 merged relational files) to identify what causally drives overall ratings and through which pathways. Constructs a 31-node / 78-edge causal graph, estimates effects via DoWhy backdoor identification against a Shapley-value correlational baseline, then decomposes effects with Baron & Kenny mediation analysis and IPW-based heterogeneous treatment effects across 17 pathways.’Dataset: UCI Restaurant & Consumer Data (9 CSV files merged to 31,559 x 52) (https://archive.ics.uci.edu/dataset/232/restaurant+consumer+data) â€” Sensitive data: Contains consumer demographic attributes used directly as treatments â€” height, personality, color preference, and whether the user has children (hijos). These are person-level characteristics and warrant care in interpretation and reuse."#
+Ella Ndallandallaella@gmail.com*
+1.0.02
+MIT:B
+@https://archive.ics.uci.edu/dataset/232/restaurant+consumer+dataB}Ella Ndalla. Restaurant Rating Causal Attribution â€” DoWhy, Mediation & HTE. GitHub repository: Causal_inference-Case_study.þû
+BUCI Restaurant & Consumer Data (9 CSV files merged to 31,559 x 52)@https://archive.ics.uci.edu/dataset/232/restaurant+consumer+dataò
+ïContains consumer demographic attributes used directly as treatments â€” height, personality, color preference, and whether the user has children (hijos). These are person-level characteristics and warrant care in interpretation and reuse.¼
+U
+Causal graphE31 nodes, 78 edges, 7 direct treatments on rating, 53 cycles detected
+O
+.Shapley attribution â€” food + service quality~84% of treatment attribution
+J
+#DoWhy causal effect â€” food_rating#0.549 (vs. 0.864 naive correlation)
+U
+:Mediation â€” activity effect through food/service quality100.2% (fully mediated)
+*
+ IPW ATE â€” hijos (has children)+0.720
+C
+5Strongest HTE â€” morning-opening restaurants x hijos
+ATE +1.476"‚
+<
+:Data scientists working on attribution and experimentation
+
+Portfolio reviewersg
+eDemonstrating how graph-informed causal attribution differs from naive correlation-based attribution.V
+TMethodological reference for mediation analysis and heterogeneous treatment effects.÷
+ôThe causal graph contains 53 detected cycles and is therefore NOT a strict DAG. Cycles arise from feature-engineering interactions and are acknowledged, not resolved, in the DoWhy identification step â€” this weakens every identification claim.ƒ
+€Causal structure is assumed from domain knowledge plus automated correlation profiling; unmeasured confounding is not ruled out.f
+dObservational data only â€” no randomization or natural experiment supports the backdoor adjustment.ö
+óDemographic treatments (height, color preference, personality) are proxies with no plausible direct causal mechanism on restaurant ratings; significant estimates for them should be read as evidence of residual confounding, not as real effects."Å
+ÂDoWhy backdoor estimates are substantially more conservative than naive correlations (food_rating: 0.549 vs. 0.864) â€” the graph-informed estimate trades apparent effect size for defensibility."L
+JIPW-based HTE gives subgroup detail but inflates variance in small strata.*Ê
+ŒDiscriminatory or spurious conclusions if demographic 'treatments' (hijos, height, personality, color) are read as actionable causal levers.¸All demographic effects are reported alongside mediation decomposition showing the substantive effects flow through food and service quality; the cycle-contaminated graph is disclosed.*¥
+4Business decisions made on non-identified estimates.mNaive Shapley attribution is reported side by side with the DoWhy estimate so the confounding gap is visible.

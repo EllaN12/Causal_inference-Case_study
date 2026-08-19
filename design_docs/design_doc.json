@@ -1,0 +1,263 @@
+{
+  "title": "Restaurant Rating Causal Attribution",
+  "subtitle": "DAG construction, DoWhy identification, mediation, and heterogeneous effects",
+  "status": "As-built \u2014 offline analysis, not deployed",
+  "summary": "A four-phase causal analysis that asks not just what correlates with restaurant ratings but what causes them and through which pathways. It builds a 31-node causal graph, estimates effects with DoWhy backdoor adjustment against a Shapley-value correlational baseline, then decomposes those effects with Baron & Kenny mediation and IPW-based heterogeneous treatment effects across 17 pathways.",
+  "problem": "Attribution analysis usually stops at feature importance, which answers 'what moves with the outcome' and is routinely misread as 'what moves the outcome'. The gap matters: acting on an inflated correlational estimate wastes budget. This project makes the gap measurable by running both methods on the same data and comparing them directly.",
+  "goals": [
+    "Construct an explicit causal graph and identify treatment variables.",
+    "Estimate causal effects via backdoor adjustment and quantify how far they sit from naive correlations.",
+    "Decompose effects into direct and mediated components.",
+    "Test whether effects differ across customer subgroups."
+  ],
+  "non_goals": [
+    "Prediction \u2014 no model is trained to forecast ratings.",
+    "Deployment or serving.",
+    "Establishing generalizable findings about restaurants outside the study pool."
+  ],
+  "requirements": [
+    [
+      "Functional",
+      "Single canonical data source for all downstream phases",
+      "Met \u2014 every module imports get_initial_data() from 01_Data_Analysis/data_pipeline.py"
+    ],
+    [
+      "Functional",
+      "Formal causal identification, not ad-hoc regression",
+      "Met \u2014 DoWhy backdoor identification against the declared graph"
+    ],
+    [
+      "Functional",
+      "Report the correlational baseline alongside the causal estimate",
+      "Met \u2014 Shapley/OLS relative importance run in parallel"
+    ],
+    [
+      "Functional",
+      "Decompose effects through mediators and across subgroups",
+      "Met \u2014 MediationAnalysis class and IPW-based HTE over 17 pathways"
+    ],
+    [
+      "Non-functional",
+      "Reproducible from raw CSVs",
+      "Met \u2014 pipeline cached to final_data.pkl, regenerable end to end"
+    ],
+    [
+      "Constraint",
+      "Observational data only \u2014 no randomization available",
+      "Accepted; every estimate is conditional on the graph being right"
+    ]
+  ],
+  "data": {
+    "sources": "UCI Restaurant & Consumer Data \u2014 9 relational CSVs merged to 31,559 rows \u00d7 52 features",
+    "pipeline": "Nine CSVs joined via pandas left merges (user chain and restaurant chain, combined on placeID), then engineered: Haversine distance, KMeans location clusters (k=5), age groups, Jaccard cuisine-match score, business-hours categories. '?' replaced with NaN, most-frequent imputation across 17 categorical columns, then label encoding.",
+    "notes": "Profiling shows zero remaining nulls across all 52 columns \u2014 because imputation already ran, so observed and imputed values are indistinguishable downstream. The left-join fan-out also means 31,559 rows represent far fewer unique user-restaurant pairs, so unweighted regressions implicitly weight users by how many payment methods and cuisines they list."
+  },
+  "candidates": [
+    [
+      "Shapley value attribution",
+      "food + service \u2248 84% of attribution",
+      "Kept as the correlational baseline"
+    ],
+    [
+      "OLS relative importance / R\u00b2",
+      "Standard variance decomposition",
+      "Kept as a secondary baseline"
+    ],
+    [
+      "DoWhy backdoor identification",
+      "food_rating effect 0.549 vs 0.864 naive",
+      "Selected as the primary causal estimator"
+    ],
+    [
+      "Baron & Kenny mediation",
+      "activity 100.2% mediated through food/service",
+      "Selected for pathway decomposition"
+    ],
+    [
+      "IPW / propensity weighting",
+      "hijos ATE +0.720; morning-opening HTE +1.476",
+      "Selected for subgroup effects"
+    ]
+  ],
+  "selected": "DoWhy backdoor adjustment as the headline estimator, reported against Shapley attribution, with mediation and IPW-HTE for decomposition.",
+  "selection_rationale": "The comparison is the finding. DoWhy's graph-informed estimate for food_rating is 0.549 against a naive correlation of 0.864 \u2014 the 0.315 gap is confounding made visible, and it is the number a stakeholder should care about when sizing an investment. Mediation then shows that activity's effect is essentially entirely indirect (100.2%), which changes the intervention from 'increase activity' to 'improve food and service, which activity was proxying for'.",
+  "evaluation": {
+    "strategy": "No train/test split \u2014 this is estimation, not prediction. Validity rests on the declared graph and the backdoor criterion. The correlational baseline serves as the reference point for how much confounding the adjustment removes.",
+    "baseline": "Naive Shapley-value attribution on the same data.",
+    "metrics": [
+      [
+        "Causal graph",
+        "31 nodes, 78 edges, 7 direct treatments, 53 cycles detected"
+      ],
+      [
+        "Shapley \u2014 food + service quality",
+        "\u224884% of treatment attribution"
+      ],
+      [
+        "DoWhy \u2014 food_rating",
+        "0.549 (vs 0.864 naive correlation)"
+      ],
+      [
+        "Mediation \u2014 activity",
+        "100.2% mediated through food/service quality"
+      ],
+      [
+        "IPW ATE \u2014 hijos (has children)",
+        "+0.720"
+      ],
+      [
+        "Strongest HTE \u2014 morning-opening \u00d7 hijos",
+        "+1.476"
+      ]
+    ]
+  },
+  "architecture": [
+    [
+      "Phase 1 \u2014 Data",
+      "pandas, geopy, scikit-learn",
+      "data_pipeline.py: merge, engineer, impute, encode \u2192 final_data.pkl"
+    ],
+    [
+      "Phase 2 \u2014 Graph",
+      "networkx, ydata-profiling, BeautifulSoup",
+      "causal_graph_module_complete.py: DAG construction, path analysis"
+    ],
+    [
+      "Phase 3 \u2014 Attribution",
+      "DoWhy + custom Shapley",
+      "Attribution_analysis_module.py and causal_graph_attribution_module.py"
+    ],
+    [
+      "Phase 4 \u2014 Decomposition",
+      "statsmodels, scikit-learn",
+      "mediation_analysis.py (Baron & Kenny), HTE_analysis.py (IPW, 17 pathways)"
+    ],
+    [
+      "Artifacts",
+      "PNG, CSV, TXT",
+      "Reports/ and results/ directories per phase"
+    ]
+  ],
+  "dataflow": [
+    "9 UCI CSVs \u2192 data_pipeline.py \u2192 final_data.pkl (31,559 \u00d7 52)",
+    "final_data.pkl \u2192 causal graph construction \u2192 causal_graph.png, path summary",
+    "graph + data \u2192 DoWhy backdoor identification \u2192 causal effect estimates",
+    "graph + data \u2192 Shapley / OLS \u2192 correlational baseline",
+    "data \u2192 mediation and IPW-HTE \u2192 mediation_summary.csv, HTE reports"
+  ],
+  "deployment": {
+    "current": "Not deployed. Phase modules are run individually; final_data.pkl is cached so downstream phases do not re-run the merge. pyproject.toml and requirements.txt define the environment.",
+    "config": [
+      [
+        "Runtime",
+        "Local Python, CPU only"
+      ],
+      [
+        "Canonical data source",
+        "get_initial_data() in 01_Data_Analysis/data_pipeline.py"
+      ],
+      [
+        "Cache",
+        "final_data.pkl (9.6 MB)"
+      ],
+      [
+        "Key dependencies",
+        "dowhy \u22650.9, networkx, ydata-profiling, geopy, statsmodels"
+      ]
+    ],
+    "gaps": "No orchestration across the four phases, no assertion that the cached pickle matches the current pipeline code, and pickle as a cache format is both version-fragile and unsafe to load from an untrusted source."
+  },
+  "monitoring": {
+    "current": "Each phase writes a text report to its Reports/ or results/ directory, so a run leaves an audit trail.",
+    "gaps": "No sensitivity analysis to unmeasured confounding, no refutation tests, and no check that the graph's assumptions still hold if the data is refreshed."
+  },
+  "risks": [
+    [
+      "The causal graph contains 53 cycles and is not a strict DAG, which undermines every identification claim",
+      "High",
+      "Disclosed in the README, model card, and this document. Resolving it is the top roadmap item."
+    ],
+    [
+      "Demographic 'treatments' \u2014 height, personality, color preference \u2014 have no plausible causal mechanism on ratings",
+      "High",
+      "Significant estimates for these are presented as evidence of residual confounding, not as real effects."
+    ],
+    [
+      "Imputation is baked into the cached artifact, so imputed and observed values are indistinguishable downstream",
+      "Medium",
+      "Documented in the data card; adding imputation indicators is a roadmap item."
+    ],
+    [
+      "Join fan-out silently weights users by their number of payment methods and cuisines",
+      "Medium",
+      "Documented; inverse-frequency weighting is a roadmap item."
+    ]
+  ],
+  "roadmap": [
+    [
+      "P0 \u2014 Validity",
+      "53 cycles in the causal graph",
+      "Enumerate the cycles, trace each to the feature-engineering interaction that created it, and either remove the derived node or orient the edge on domain grounds until the graph is acyclic. Re-run DoWhy afterward and report how the estimates move",
+      "L"
+    ],
+    [
+      "P0 \u2014 Validity",
+      "No refutation testing",
+      "Run DoWhy's built-in refuters \u2014 placebo treatment, random common cause, data subset \u2014 and publish the results next to each estimate",
+      "M"
+    ],
+    [
+      "P0 \u2014 Data integrity",
+      "Imputed values indistinguishable from observed",
+      "Emit a parallel `_was_imputed` indicator column per imputed field and include the indicators as covariates",
+      "S"
+    ],
+    [
+      "P1 \u2014 Estimation",
+      "Join fan-out distorts implicit weights",
+      "Either deduplicate to unique user\u2013restaurant pairs or apply inverse-frequency weights, and compare estimates before and after",
+      "M"
+    ],
+    [
+      "P1 \u2014 Robustness",
+      "No sensitivity analysis to unmeasured confounding",
+      "Add E-value or Rosenbaum bounds so each headline effect carries a statement of how strong a hidden confounder would need to be to overturn it",
+      "M"
+    ],
+    [
+      "P1 \u2014 Reproducibility",
+      "Pickle cache is version-fragile and unsafe",
+      "Switch to parquet with an explicit schema, and assert a pipeline-code hash matches the cache before use",
+      "S"
+    ],
+    [
+      "P2 \u2014 Orchestration",
+      "Four phases run by hand",
+      "Wrap in a single runner with a config file, matching the run_all.py pattern used elsewhere in the portfolio",
+      "S"
+    ],
+    [
+      "P2 \u2014 Scope",
+      "Findings limited to a 2012 Mexican convenience sample",
+      "Replicate on a second ratings dataset to test whether the mediation structure holds",
+      "L"
+    ]
+  ],
+  "open_questions": [
+    "After the cycles are resolved, does food_rating's effect stay near 0.549 or move materially? The current estimate is conditional on a graph that does not satisfy DoWhy's assumptions.",
+    "Is 'activity is 100.2% mediated' a real full-mediation result or an artifact of measurement overlap between activity and the mediators?",
+    "Should the demographic treatments be dropped from the analysis entirely rather than reported with caveats?"
+  ],
+  "references": [
+    "model_cards/model_card.docx \u00b7 data_cards/data_card.docx",
+    "README.md \u2014 phase-by-phase method write-up",
+    "02_Causal_Graph/Reports/causal_graph.png \u2014 the 31-node DAG"
+  ],
+  "project": "Causal_inference-Case_study",
+  "owner": {
+    "name": "Ella Ndalla",
+    "contact": "ndallaella@gmail.com"
+  },
+  "date": "2026-08-01",
+  "schema": "ml-design-doc/1.0"
+}
