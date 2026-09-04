@@ -27,7 +27,7 @@ The outcome `rating` and the mediators `food_rating` and `service_rating` are se
 
 ## Preprocessing
 
-Nine CSVs merged with pandas left joins (user chain: userprofile -> userpayment -> usercuisine -> rating_final; restaurant chain: geoplaces2 -> chefmozaccepts -> chefmozparking -> chefmozcuisine -> chefmozhours4; combined on placeID) producing 31,559 rows x 52 features. Engineered: geodesic patron-restaurant distance (Haversine), KMeans location clusters (k=5), age groups from birth year, Jaccard cuisine-match score, and business-hours categories. '?' markers replaced with NaN, then most-frequent imputation across 17 categorical columns, then label encoding.
+Nine CSVs merged with pandas left joins. The six one-to-many attribute tables (userpayment, usercuisine, chefmozaccepts, chefmozparking, chefmozcuisine) are first collapsed to one row per key with their values joined into ';'-delimited sets, and chefmozhours4 is reduced to its weekday row; rating_final is then the only intentional fan-out. User chain: userprofile -> userpayment -> usercuisine -> rating_final; restaurant chain: geoplaces2 -> chefmozaccepts -> chefmozparking -> chefmozcuisine -> chefmozhours4; combined on placeID. Result: 1,161 rows x 52 features - one row per (userID, placeID) rating, enforced by a row-count guard in merge_data(). Engineered: geodesic patron-restaurant distance (Haversine), KMeans location clusters (k=5), age groups from birth year, Jaccard cuisine-match score, and business-hours categories. '?' markers replaced with NaN, then most-frequent imputation across 17 categorical columns, then label encoding.
 
 ## Splits
 
@@ -50,63 +50,65 @@ Person-level attributes are used directly as treatment variables: whether the us
 ## Known Issues, Skews & Gaps
 
 - Zero missing values remain across all 52 columns — because imputation has already been applied. The true pre-imputation missingness is not recoverable from this artifact, so downstream analysis cannot distinguish imputed from observed values.
-- The left-join fan-out inflates row count well beyond the number of distinct ratings: 31,559 rows represent far fewer unique user-restaurant pairs, so each rating is counted multiple times. Unweighted regressions over this table implicitly weight users and restaurants by how many payment methods and cuisines they list.
+- **RESOLVED (was: left-join fan-out).** The six one-to-many attribute tables were previously joined raw, inflating 1,161 ratings to 31,559 rows (27.2x) and implicitly weighting each user and restaurant by how many cuisines and payment methods it listed. That biased every descriptive statistic and point estimate, not just the standard errors - mean rating read 0.91 against a true 1.20, and 'informal' dress preference read 68.6% against a true 28.0%. The tables are now collapsed before joining and a guard in merge_data() fails the build if the row count ever stops matching the rating count. Figures below are recomputed on the corrected 1,161-row table.
+- The Jaccard cuisine-match score was previously degraded to an exact-match indicator: engineer_features() splits each cell on ';', but the un-collapsed merge put a single cuisine in each cell, so the split always returned a one-element set. It now takes 18 distinct values across 123 multi-cuisine users and 158 multi-specialty restaurants.
 - Most-frequent imputation across 17 categorical columns compresses variance and biases estimates toward the modal category.
-- The causal graph derived from this table contains 53 cycles and is not a strict DAG.
+- RESOLVED. The causal graph derived from this table previously contained 53 cycles; the edge list was re-derived on the corrected table with forward-only layering and is now a strict DAG (14 nodes, 16 edges, 0 cycles). See `docs/edge_derivation.md`.
 
 ## Profiled Schema
 
 ### `final_data.pkl — merged analysis table`
 
-**Rows:** 31,559  
+**Rows:** 1,161  
 **Columns:** 52  
-**Duplicate rows:** 20,007  
+**Duplicate rows:** 0  
 **Source file:** `Causal_inference-Case_study/01_Data_Analysis/final_data.pkl`
 
-> Output of get_initial_data(): 9 source CSVs merged, engineered, and imputed.
+> Output of get_initial_data(): 9 source CSVs collapsed, merged, engineered and imputed.
+> One row per (userID, placeID) rating.
 
 | Field | Type | Null % | Distinct | Range / top values |
 |---|---|---:|---:|---|
-| `p.latitude` | float64 | 0.00 | 128 | min 18.81 · median 22.16 · max 23.77 · mean 21.88 |
-| `p.longitude` | float64 | 0.00 | 126 | min -101.1 · median -100.9 · max -99.07 · mean -100.7 |
-| `birth_year` | int64 | 0.00 | 21 | min 1,930 · median 1,988 · max 1,994 · mean 1,984 |
-| `weight` | int64 | 0.00 | 49 | min 40 · median 66 · max 120 · mean 65.12 |
-| `height` | float64 | 0.00 | 38 | min 1.2 · median 1.64 · max 2 · mean 1.644 |
-| `placeID` | int64 | 0.00 | 130 | min 132,560 · median 135,042 · max 135,109 · mean 1.346e+05 |
-| `rating` | int64 | 0.00 | 3 | min 0 · median 1 · max 2 · mean 0.9106 |
-| `food_rating` | int64 | 0.00 | 3 | min 0 · median 1 · max 2 · mean 0.8839 |
-| `service_rating` | int64 | 0.00 | 3 | min 0 · median 1 · max 2 · mean 0.7978 |
-| `latitude` | float64 | 0.00 | 129 | min 18.86 · median 22.15 · max 23.76 · mean 22.07 |
-| `longitude` | float64 | 0.00 | 129 | min -101 · median -101 · max -99.13 · mean -100.9 |
+| `p.latitude` | float64 | 0.00 | 128 | min 18.81 · median 22.15 · max 23.77 · mean 21.89 |
+| `p.longitude` | float64 | 0.00 | 126 | min -101.1 · median -100.9 · max -99.07 · mean -100.5 |
+| `birth_year` | int64 | 0.00 | 21 | min 1,930 · median 1,989 · max 1,994 · mean 1984 |
+| `weight` | int64 | 0.00 | 49 | min 40 · median 64 · max 120 · mean 63.24 |
+| `height` | float64 | 0.00 | 38 | min 1.2 · median 1.69 · max 2 · mean 1.663 |
+| `placeID` | int64 | 0.00 | 130 | min 132,560 · median 135,030 · max 135,109 · mean 1.342e+05 |
+| `rating` | int64 | 0.00 | 3 | min 0 · median 1 · max 2 · mean 1.2 |
+| `food_rating` | int64 | 0.00 | 3 | min 0 · median 1 · max 2 · mean 1.215 |
+| `service_rating` | int64 | 0.00 | 3 | min 0 · median 1 · max 2 · mean 1.09 |
+| `latitude` | float64 | 0.00 | 129 | min 18.86 · median 22.15 · max 23.76 · mean 21.99 |
+| `longitude` | float64 | 0.00 | 129 | min -101 · median -101 · max -99.13 · mean -100.6 |
 | `userID` | object | 0.00 | 138 |  |
-| `smoker` | object | 0.00 | 2 | false 93.57% · true 6.43% |
-| `drink_level` | object | 0.00 | 3 | casual drinker 56.74% · abstemious 31.77% · social drinker 11.49% |
-| `dress_preference` | object | 0.00 | 4 | informal 68.58% · no preference 16.52% · formal 13.24% |
-| `ambience` | object | 0.00 | 3 | family 58.99% · friends 21.52% · solitary 19.49% |
-| `transport` | object | 0.00 | 3 | on foot 44.18% · public 40.55% · car owner 15.27% |
-| `marital_status` | object | 0.00 | 3 | single 96.61% · married 2.69% · widow 0.69% |
-| `hijos` | object | 0.00 | 3 | independent 61.27% · kids 38.22% · dependent 0.51% |
-| `interest` | object | 0.00 | 5 | variety 51.91% · technology 26.78% · eco-friendly 11.91% |
-| `personality` | object | 0.00 | 4 | hunter-ostentatious 42.04% · thrifty-protector 35.53% · hard-worker 21.32% |
-| `religion` | object | 0.00 | 5 | Catholic 86.91% · none 10.99% · Christian 0.98% |
-| `activity` | object | 0.00 | 4 | student 89.6% · professional 9.94% · unemployed 0.35% |
-| `color` | object | 0.00 | 8 | purple 36.24% · blue 28.27% · green 15.09% |
-| `budget` | object | 0.00 | 3 | medium 50.36% · low 47.85% · high 1.79% |
-| `Upayment` | object | 0.00 | 5 | cash 81.03% · VISA 7.73% · MasterCard-Eurocard 5.49% |
-| `User_cuisine` | object | 0.00 | 103 |  |
+| `smoker` | object | 0.00 | 2 | false 80.79% · true 19.21% |
+| `drink_level` | object | 0.00 | 3 | casual drinker 35.75% · abstemious 34.37% · social drinker 29.89% |
+| `dress_preference` | object | 0.00 | 4 | no preference 38.42% · formal 31.18% · informal 27.99% |
+| `ambience` | object | 0.00 | 3 | family 56.16% · friends 33.42% · solitary 10.42% |
+| `transport` | object | 0.00 | 3 | public 61.5% · car owner 26.96% · on foot 11.54% |
+| `marital_status` | object | 0.00 | 3 | single 92.42% · married 5.771% · widow 1.809% |
+| `hijos` | object | 0.00 | 3 | independent 91.3% · kids 7.063% · dependent 1.637% |
+| `interest` | object | 0.00 | 5 | variety 35.83% · technology 25.24% · none 24.46% |
+| `personality` | object | 0.00 | 4 | hard-worker 47.37% · thrifty-protector 39.02% · hunter-ostentatious 8.958% |
+| `religion` | object | 0.00 | 5 | Catholic 74.5% · none 19.98% · Christian 3.962% |
+| `activity` | object | 0.00 | 4 | student 88.2% · professional 10.25% · unemployed 1.206% |
+| `color` | object | 0.00 | 8 | blue 34.11% · black 14.47% · green 13.26% |
+| `budget` | object | 0.00 | 3 | medium 69.16% · low 27.22% · high 3.618% |
+| `Upayment` | object | 0.00 | 11 | cash 77.86% · bank_debit_cards;cash 8.613% · VISA;cash 5.512% |
+| `User_cuisine` | object | 0.00 | 35 |  |
 | `the_geom_meter` | object | 0.00 | 130 |  |
 | `restaurant_name` | object | 0.00 | 129 |  |
 | `address` | object | 0.00 | 99 |  |
-| `city` | object | 0.00 | 16 | San Luis Potosi 86.83% · san luis potosi 3.94% · Cuernavaca 2.69% |
-| `state` | object | 0.00 | 12 | SLP 75.29% · San Luis Potosi 11.72% · Morelos 3.18% |
-| `country` | object | 0.00 | 2 | Mexico 94.9% · mexico 5.1% |
+| `city` | object | 0.00 | 16 | San Luis Potosi 72.27% · Cuernavaca 6.804% · victoria 4.307% |
+| `state` | object | 0.00 | 12 | SLP 61.41% · San Luis Potosi 10.77% · Morelos 8.441% |
+| `country` | object | 0.00 | 2 | Mexico 90.01% · mexico 9.991% |
 | `zip` | object | 0.00 | 34 |  |
-| `alcohol` | object | 0.00 | 3 | Wine-Beer 47.8% · No_Alcohol_Served 38.97% · Full_Bar 13.23% |
-| `smoking_area` | object | 0.00 | 5 | none 54.98% · section 25.86% · not permitted 13.21% |
-| `dress_code` | object | 0.00 | 3 | informal 89.92% · casual 9.87% · formal 0.21% |
-| `accessibility` | object | 0.00 | 3 | no_accessibility 77.64% · completely 15.05% · partially 7.32% |
-| `price` | object | 0.00 | 3 | medium 59.87% · high 28.2% · low 11.93% |
-| `Rambience` | object | 0.00 | 2 | familiar 97.87% · quiet 2.13% |
+| `alcohol` | object | 0.00 | 3 | No_Alcohol_Served 65.63% · Wine-Beer 27.48% · Full_Bar 6.891% |
+| `smoking_area` | object | 0.00 | 5 | none 54.78% · section 19.98% · not permitted 19.38% |
+| `dress_code` | object | 0.00 | 3 | informal 88.8% · casual 9.991% · formal 1.206% |
+| `accessibility` | object | 0.00 | 3 | no_accessibility 64.69% · completely 29.11% · partially 6.202% |
+| `price` | object | 0.00 | 3 | medium 49.7% · low 30.15% · high 20.16% |
+| `Rambience` | object | 0.00 | 2 | familiar 94.49% · quiet 5.512% |
 
 > 12 further columns omitted from this table; the complete profile is in `data_card.json`.
 

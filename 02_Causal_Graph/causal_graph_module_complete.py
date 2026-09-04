@@ -25,153 +25,71 @@ _REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
 #CAUSAL EDGES: defined from the correlation analysis 
 
+# ============================================================================
+# correlation_edges — re-derived 2026-09-03 on the CORRECTED 1,161-row table.
+#
+# The previous 78-edge list was screened by ydata-profiling on the 31,559-row
+# table produced by the un-collapsed left-join fan-out (27.2x duplication). That
+# screen manufactured association between user demographics and rating: each user
+# was replicated once per cuisine x payment method they listed, so their constant
+# attributes were re-counted against their ratings. Of the 7 original direct
+# treatments on `rating`, five collapse on the corrected data:
+#
+#     personality  0.635 -> 0.017      color     0.763 -> 0.223
+#     hijos        0.703 -> 0.133      interest  0.555 -> 0.198
+#     height          -  -> 0.051
+#     food_rating  0.692 -> 0.692  (kept)
+#     service_rating 0.680 -> 0.680  (kept)
+#
+# HOW THIS LIST IS BUILT (see docs/edge_derivation.md):
+#   1. Association measured with BIAS-CORRECTED Cramer's V (Bergsma) for
+#      categorical pairs, Spearman for numeric pairs, correlation ratio for mixed.
+#      The bias correction matters: plain Cramer's V inflates with cardinality, and
+#      the collapsed set-columns (User_cuisine, restaurant_specialty) are high
+#      cardinality by construction. Categoricals above 15 levels are excluded
+#      outright, as are identifiers and coordinates.
+#   2. Variables are LAYERED, and edges may only run forward:
+#        L0 exogenous  (user attributes AND restaurant attributes)
+#        L1 dyadic     (patron_restaurant_distance, cuisine_match_score)
+#        L2 mediators  (food_rating, service_rating)
+#        L3 outcome    (rating)
+#      Within-layer edges are omitted BY DESIGN. A user attribute does not cause a
+#      restaurant attribute — their association is selection (which patron visits
+#      which restaurant), not causation. Omitting them also makes the graph a
+#      strict DAG, replacing the 53 cycles the previous list produced.
+#   3. Inclusion threshold 0.20.
+#
+# READ THE THRESHOLD HONESTLY: only the two mediator edges clear ydata's own 0.50
+# alert level. Everything else here is weak association retained so the graph has
+# structure to identify against. There is a real gap between 0.680 and 0.223.
+# ============================================================================
 correlation_edges = [
-    
-    # Outcome (7 edges - direct effects ON rating)
-    ("color", "rating"),           
-    ("height", "rating"),           
-    ("hijos", "rating"),           
-    ("interest", "rating"),        
-    ("personality", "rating"),
-    ("food_rating", "rating"),     
-    ("service_rating", "rating"),   
-    
-    # Business_hours (1 edge)
-    ("area", "Business_hours"),
-    
-    # Food rating (2 edges)
-    ("height", "food_rating"),      
-    ("hijos", "food_rating"),      
-    
-    # Service rating (1 edge)
-    ("color", "service_rating"),    
-    
-    # height (6 edges)
-    ("height", "ambience"),
-    ("height", "budget"),
-    ("height", "drink_level"),      
-    ("height", "personality"),
-    ("height", "transport"),
-    ("height", "weight"),
-    
-    # Interest (3 edges)
-    ("interest", "ambience"),
-    ("interest", "color"),
-    ("interest", "height"),
-    
-    # Color edges (7 edges)
-    ("age_group", "color"),
-    ("ambience", "color"),
-    ("budget", "color"),
-    ("drink_level", "color"),       
-    ("hijos", "color"),
-    ("personality", "color"),       
-    
-    # Activity (3 edges)
-    ("marital_status", "activity"), 
-    ("weight", "activity"),
-    ("age_group", "activity"),
-    
-    # age_group (1 edge)
-    ("age_group", "patrons_restaurant_distance"),
-    
-    # accessibility (3 edges)
-    ("accessibility", "area"),
-    ("accessibility", "restaurant_specialty"),  
-    ("accessibility", "smoking_area"),          
-    
-    # Children / hijos (2 edges)
-    ("hijos", "budget"),
-    ("hijos", "transport"),
-    
-    # Personality (4 edges)
-    ("personality", "color"),           
-    ("personality", "food_rating"),     
-    ("height", "personality"),  
-    ("weight", "personality"),
-    
-    # alcohol (2 edges)
-    ("alcohol", "restaurant_specialty"),    
-    ("alcohol", "url"),
-    
-    # ambiance (1 edge)
-    ("ambiance", "restaurant_specialty"),   
-    
-    # ambience (5 edges)
-    ("ambience", "color"),
-    ("ambience", "height"),
-    ("ambience", "interest"),
-    ("ambience", "transport"),
-    ("ambience", "weight"),
-    
-    # area (3 edges)
-    ("area", "accessibility"),
-    ("area", "smoking_area"),               
-    ("area", "Business_hours"),
-    
-    # budget (3 edges)
-    ("budget", "color"),
-    ("budget", "height"),
-    ("budget", "transport"),
-    
-    # drink_level (3 edges)
-    ("drink_level", "height"),             
-    ("drink_level", "transport"),          
-    ("drink_level", "weight"),              
-    
-    # franchise (3 edges)
-    ("franchise", "location_cluster"),      
-    ("franchise", "restaurant_specialty"),  
-    ("franchise", "zip"),
-    
-    # price (3 edges)
-    ("restaurant_specialty", "price"),      
-    ("url", "price"),                  
-    ("zip", "price"),            
-    
-    # location_cluster (3 edges)
-    ("location_cluster", "franchise"),          
-    ("location_cluster", "restaurant_specialty"), 
-    ("zip", "location_cluster"),                 
-    
-    # marital_status (2 edges)
-    ("marital_status", "activity"),         
-    ("marital_status", "transport"),        
-    
-    # other_services (1 edge)
-    ("other_services", "restaurant_specialty"),  
-    
-    # parking_lot (2 edges)
-    ("restaurant_specialty", "parking_lot"),     
-    ("zip", "parking_lot"),                      
-    
-    # patrons_restaurant_distance (1 edge)
-    ("patrons_restaurant_distance", "age_group"),
-    
-    # restaurant_specialty (8 edges)
-    ("restaurant_specialty", "accessibility"),  
-    ("restaurant_specialty", "alcohol"),
-    ("restaurant_specialty", "ambiance"),
-    ("restaurant_specialty", "location_cluster"),  
-    ("restaurant_specialty", "other_services"),    
-    ("restaurant_specialty", "parking_lot"),       
-    ("restaurant_specialty", "price"),
-    ("restaurant_specialty", "smoking_area"),      
-    
-    # transport (5 edges)
-    ("transport", "ambience"),
-    ("transport", "color"),
-    ("transport", "drink_level"),      
-    ("marital_status", "transport"),    
-    ("budget", "transport"),
-    
-    # weight (6 edges)
-    ("weight", "activity"),
-    ("weight", "ambience"),
-    ("weight", "drink_level"),          
-    ("weight", "food_rating"),          
-    ("weight", "personality"),
-    ("weight", "transport")
+
+    # Outcome (3 edges - direct effects ON rating)
+    ("food_rating", "rating"),                       # 0.692
+    ("service_rating", "rating"),                    # 0.680
+    ("color", "rating"),                             # 0.223
+
+    # Mediators: food_rating (3 edges)
+    ("drink_level", "food_rating"),                  # 0.251
+    ("color", "food_rating"),                        # 0.247
+    ("Upayment", "food_rating"),                     # 0.226
+
+    # Mediators: service_rating (3 edges)
+    ("color", "service_rating"),                     # 0.230
+    ("Upayment", "service_rating"),                  # 0.221
+    ("drink_level", "service_rating"),               # 0.201
+
+    # Dyadic: patron_restaurant_distance (3 edges)
+    ("Upayment", "patron_restaurant_distance"),      # 0.413
+    ("activity", "patron_restaurant_distance"),      # 0.397
+    ("age_group", "patron_restaurant_distance"),     # 0.296
+
+    # Dyadic: cuisine_match_score (4 edges)
+    ("Business_hours", "cuisine_match_score"),       # 0.353
+    ("restaurant_payment", "cuisine_match_score"),   # 0.329
+    ("area", "cuisine_match_score"),                 # 0.279
+    ("accessibility", "cuisine_match_score"),        # 0.247
 ]
 
 

@@ -91,6 +91,51 @@ def load_raw_data(raw_dir: Path = RAW_DIR) -> dict[str, pd.DataFrame]:
 # ============================================================
 # PHASE 2 — MERGING & INITIAL PREPROCESSING
 # ============================================================
+def _collapse_multi(df: pd.DataFrame, key: str, sep: str = ";") -> pd.DataFrame:
+    """
+    Collapse a one-to-many attribute table to ONE row per `key`.
+
+    Why this exists
+    ---------------
+    Six of the nine source tables hold multiple rows per key — a user lists up to
+    103 cuisines, a restaurant up to 9. Left-joining them raw multiplies rows: the
+    1,161 actual ratings became 31,559 rows (27.2x), and every downstream estimate
+    was fit on duplicated observations, understating standard errors by ~sqrt(27).
+
+    Each attribute column becomes a `sep`-delimited set instead — which is the shape
+    `engineer_features().jaccard()` already assumes when it does `str(u).split(";")`.
+    Before this fix that split always returned a single-element set, so the Jaccard
+    "similarity" was really an exact-match indicator.
+
+    Values are sorted so the collapse is deterministic across runs.
+    """
+    value_cols = [c for c in df.columns if c != key]
+    out = (
+        df.groupby(key, as_index=False)[value_cols]
+          .agg(lambda s: sep.join(sorted({str(v) for v in s.dropna()})))
+    )
+    return out.replace("", np.nan)
+
+
+def _pick_hours(df: pd.DataFrame, key: str = "placeID") -> pd.DataFrame:
+    """
+    One opening-hours row per restaurant, preferring the weekday schedule.
+
+    `hours` is parsed positionally downstream (`str[:-1].str.split("-")`), so unlike
+    the other attribute tables it CANNOT be collapsed into a delimited set — a joined
+    string would silently produce a garbage start_time. `chefmozhours4` carries one
+    row per day-group, so the weekday row is picked and the weekend rows dropped;
+    `clean_categorical()` already special-cases exactly that value.
+    """
+    weekday = "Mon;Tue;Wed;Thu;Fri;"
+    df = df.copy()
+    df["_pref"] = (df["days"] != weekday).astype(int)   # 0 = weekday row, sorts first
+    out = (df.sort_values([key, "_pref"], kind="mergesort")
+             .drop_duplicates(subset=[key], keep="first")
+             .drop(columns="_pref"))
+    return out
+
+
 def merge_data(dataframes: dict[str, pd.DataFrame]) -> pd.DataFrame:
     """
     Merge the 9 source tables into a single flat DataFrame.
@@ -100,19 +145,33 @@ def merge_data(dataframes: dict[str, pd.DataFrame]) -> pd.DataFrame:
                          → chefmozcuisine → chefmozhours4
     Combined          : patrons LEFT JOIN restaurants ON placeID
 
+    The six one-to-many attribute tables are collapsed to one row per key BEFORE
+    joining (see `_collapse_multi`). The unit of analysis is therefore one row per
+    rating — `rating_final` is the only intentional fan-out, because a user rates
+    many restaurants.
+
     Returns
     -------
-    pd.DataFrame  — merged but not yet cleaned
+    pd.DataFrame  — merged but not yet cleaned; one row per (userID, placeID) rating
     """
     print("\n" + "="*55)
     print("PHASE 2 — MERGING DATA")
     print("="*55)
 
-    # — Patron side —
+    # — Collapse the one-to-many attribute tables to one row per key —
+    user_pay     = _collapse_multi(dataframes["userpayment"],    "userID")
+    user_cuisine = _collapse_multi(dataframes["usercuisine"],    "userID")
+    rest_accepts = _collapse_multi(dataframes["chefmozaccepts"], "placeID")
+    rest_parking = _collapse_multi(dataframes["chefmozparking"], "placeID")
+    rest_cuisine = _collapse_multi(dataframes["chefmozcuisine"], "placeID")
+    rest_hours   = _pick_hours(dataframes["chefmozhours4"])
+    print(f"  Attribute tables collapsed to one row per key")
+
+    # — Patron side — rating_final is the ONLY intentional fan-out
     patrons_df = (
         dataframes["userprofile"]
-        .merge(dataframes["userpayment"],   on="userID", how="left")
-        .merge(dataframes["usercuisine"],   on="userID", how="left")
+        .merge(user_pay,                    on="userID", how="left")
+        .merge(user_cuisine,                on="userID", how="left")
         .merge(dataframes["rating_final"],  on="userID", how="left")
     )
     patrons_df.rename(columns={"latitude": "p.latitude",
@@ -122,16 +181,26 @@ def merge_data(dataframes: dict[str, pd.DataFrame]) -> pd.DataFrame:
     # — Restaurant side —
     restaurant_df = (
         dataframes["geoplaces2"]
-        .merge(dataframes["chefmozaccepts"], on="placeID", how="left")
-        .merge(dataframes["chefmozparking"], on="placeID", how="left")
-        .merge(dataframes["chefmozcuisine"], on="placeID", how="left")
-        .merge(dataframes["chefmozhours4"],  on="placeID", how="left")
+        .merge(rest_accepts, on="placeID", how="left")
+        .merge(rest_parking, on="placeID", how="left")
+        .merge(rest_cuisine, on="placeID", how="left")
+        .merge(rest_hours,   on="placeID", how="left")
     )
     print(f"  Restaurants merged: {restaurant_df.shape}")
 
     # — Combined —
     data = patrons_df.merge(restaurant_df, on="placeID", how="left")
     print(f"  Combined dataset:   {data.shape}")
+
+    # — Guard: one row per rating, or the fan-out has come back —
+    n_ratings = len(dataframes["rating_final"])
+    if len(data) != n_ratings:
+        raise ValueError(
+            f"Row-count guard failed: {len(data):,} rows for {n_ratings:,} ratings "
+            f"({len(data)/n_ratings:.1f}x). A one-to-many table is being joined raw — "
+            f"see _collapse_multi()."
+        )
+    print(f"  ✓ One row per rating ({n_ratings:,}) — no fan-out")
 
     return data
 
