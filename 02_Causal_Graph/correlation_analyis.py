@@ -1,29 +1,14 @@
 #%%
-import os
 from bs4 import BeautifulSoup as soup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 
-#for causal_grapgh
-#from causalgraphicalmodels import CausalGraphicalModel
-import networkx as nx
-import matplotlib.pyplot as plt
-from matplotlib.patches import Patch
-from typing import Dict, List, Set, Tuple
-import logging, sys
-import pandas_flavor as pf
-from geopy.distance import geodesic
-import seaborn as sns   
-from scipy import stats
 import warnings
 warnings.filterwarnings('ignore')
-import networkx as nx
 import ydata_profiling as yd
 from pathlib import Path
-import matplotlib.pyplot as plt 
-from matplotlib.patches import Patch
 import sys
 
 _MODULE_DIR  = Path(__file__).resolve().parent          # 02_Causal_Graph/
@@ -39,9 +24,10 @@ for candidate in [_PROJECT_DIR, _PROJECT_DIR / "venv", _PROJECT_DIR / "01_Data_A
 from data_pipeline import get_initial_data                         # Phase 1 — canonical data source
 
 
-df = get_initial_data()
-eda_report = yd.ProfileReport(df, title="Profiling_Report", explorative=True)
-eda_report.to_file(str(_REPORTS_DIR / "eda_report.html"))
+def build_eda_report() -> None:
+    df = get_initial_data()
+    eda_report = yd.ProfileReport(df, title="Profiling_Report", explorative=True)
+    eda_report.to_file(str(_REPORTS_DIR / "eda_report.html"))
 
 
 def webscrape_report():
@@ -141,8 +127,6 @@ def webscrape_report():
         else:
             print("Alerts div not found.")
 
-    except FileNotFoundError:
-        print(f"Error: File not found at {file_path}")
     except Exception as e:
         print(f"An error occurred: {e}")
         import traceback
@@ -158,11 +142,7 @@ def webscrape_report():
         
         
 
-d = webscrape_report()
-
-print(d)
-
-#%%
-
-
-#
+if __name__ == "__main__":
+    build_eda_report()
+    d = webscrape_report()
+    print(d)
