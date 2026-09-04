@@ -1,24 +1,14 @@
 #%%
 import sys
 from pathlib import Path
-import networkx as nx
-from dowhy import CausalModel
 import pandas as pd
 import numpy as np
-import os
-from geopy.distance import geodesic
-from sklearn.cluster import KMeans
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import LabelEncoder
 from scipy import stats
 import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings('ignore')
-import re
-import matplotlib.pyplot as plt
-import networkx as nx
-import pandas_flavor as pf
-#import causal_analysis_module as cam
 
 # Ensure 01_Data_Analysis/ is on sys.path — canonical data source.
 REPO_ROOT     = Path(__file__).resolve().parents[1]
@@ -499,8 +489,9 @@ def run_mediation_pipeline(df, treatments=None):
     df : pd.DataFrame
         Restaurant ratings data
     treatments : list of str, optional
-        List of treatment variables to analyze
-        Default: ['age_group', 'activity', 'personality', 'User_cuisine']
+        List of treatment variables to analyze.
+        Default: ['drink_level', 'color', 'Upayment'] — the three exogenous
+        variables with paths to rating via the mediators in the revised causal graph.
     """
     
     print("="*80)
@@ -509,9 +500,12 @@ def run_mediation_pipeline(df, treatments=None):
     print("                   food quality vs service quality?")
     print("="*80)
     
-    # Default treatments if none specified
+    # Default treatments: variables with paths to rating via the mediators
+    # in the revised 16-edge causal graph (drink_level, color, Upayment all
+    # flow into food_rating / service_rating → rating).  personality,
+    # age_group, activity, and User_cuisine no longer have graph paths to rating.
     if treatments is None:
-        treatments = ['age_group', 'activity', 'personality', 'User_cuisine']
+        treatments = ['drink_level', 'color', 'Upayment']
 
     
     # Initialize mediation analysis
