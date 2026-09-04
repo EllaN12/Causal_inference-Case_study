@@ -4,198 +4,152 @@ Research Question: How much of the overall rating is explained by
                    food quality vs service quality?
 ================================================================================
 
-🔬 Analyzing 4 treatment variables...
+🔬 Analyzing 3 treatment variables...
 
 ================================================================================
-MEDIATION ANALYSIS: age_group
+MEDIATION ANALYSIS: drink_level
 ================================================================================
-  Encoded categorical variable: age_group
-  Categories: ['26-35', '36-50', '50+']
+  Encoded categorical variable: drink_level
+  Categories: ['abstemious', 'casual drinker', 'social drinker']
 
 Sample size: n = 1161
 
 --- TOTAL EFFECT (without mediators) ---
-  Effect coefficient: 0.1079
-  R²: 0.0067
-  p-value: 0.0053
+  Effect coefficient: 0.0355
+  R²: 0.0014
+  p-value: 0.2109
 
 --- PATH: Treatment → Food Quality ---
-  Coefficient (a1): 0.1337
+  Coefficient (a1): 0.0379
 
 --- PATH: Treatment → Service Quality ---
-  Coefficient (a2): 0.1281
+  Coefficient (a2): 0.0964
 
 --- CONTROLLING FOR MEDIATORS ---
-  Direct effect (c'): -0.0014
-  Food → Rating (b1): 0.4498
-  Service → Rating (b2): 0.3839
-  R² (with mediators): 0.6006
+  Direct effect (c'): -0.0188
+  Food → Rating (b1): 0.4490
+  Service → Rating (b2): 0.3862
+  R² (with mediators): 0.6009
 
 --- INDIRECT EFFECTS ---
-  Via Food Quality: 0.0601
-  Via Service Quality: 0.0492
-  Total Indirect: 0.1093
+  Via Food Quality: 0.0170
+  Via Service Quality: 0.0372
+  Total Indirect: 0.0543
 
 --- PROPORTION OF EFFECT EXPLAINED ---
-  By Food Quality: 55.7% of total effect
-  By Service Quality: 45.6% of total effect
-  Total Mediated: 101.3% of total effect
-  Direct (not via mediators): -1.3% of total effect
+  By Food Quality: 48.0% of total effect
+  By Service Quality: 104.9% of total effect
+  Total Mediated: 152.9% of total effect
+  Direct (not via mediators): -52.9% of total effect
 
 --- RELATIVE IMPORTANCE OF MEDIATORS ---
-  Food Quality: 55.0% of mediated effect
-  Service Quality: 45.0% of mediated effect
+  Food Quality: 31.4% of mediated effect
+  Service Quality: 68.6% of mediated effect
 
 --- VARIANCE EXPLAINED ---
-  Treatment alone: R² = 0.0067
-  With mediators: R² = 0.6006
-  Increase from mediators: ΔR² = 0.5939
+  Treatment alone: R² = 0.0014
+  With mediators: R² = 0.6009
+  Increase from mediators: ΔR² = 0.5996
 
 ================================================================================
-MEDIATION ANALYSIS: activity
+MEDIATION ANALYSIS: color
 ================================================================================
-  Encoded categorical variable: activity
-  Categories: ['professional', 'student', 'unemployed', 'working-class']
+  Encoded categorical variable: color
+  Categories: ['black', 'blue', 'green', 'orange', 'purple', 'red', 'white', 'yellow']
 
 Sample size: n = 1161
 
 --- TOTAL EFFECT (without mediators) ---
-  Effect coefficient: -0.2599
-  R²: 0.0137
-  p-value: 0.0001
+  Effect coefficient: -0.0347
+  R²: 0.0109
+  p-value: 0.0004
 
 --- PATH: Treatment → Food Quality ---
-  Coefficient (a1): -0.3060
+  Coefficient (a1): -0.0592
 
 --- PATH: Treatment → Service Quality ---
-  Coefficient (a2): -0.2358
+  Coefficient (a2): -0.0470
 
 --- CONTROLLING FOR MEDIATORS ---
-  Direct effect (c'): -0.0323
-  Food → Rating (b1): 0.4481
-  Service → Rating (b2): 0.3834
-  R² (with mediators): 0.6008
-
---- INDIRECT EFFECTS ---
-  Via Food Quality: -0.1371
-  Via Service Quality: -0.0904
-  Total Indirect: -0.2275
-
---- PROPORTION OF EFFECT EXPLAINED ---
-  By Food Quality: 52.8% of total effect
-  By Service Quality: 34.8% of total effect
-  Total Mediated: 87.6% of total effect
-  Direct (not via mediators): 12.4% of total effect
-
---- RELATIVE IMPORTANCE OF MEDIATORS ---
-  Food Quality: 60.3% of mediated effect
-  Service Quality: 39.7% of mediated effect
-
---- VARIANCE EXPLAINED ---
-  Treatment alone: R² = 0.0137
-  With mediators: R² = 0.6008
-  Increase from mediators: ΔR² = 0.5870
-
-================================================================================
-MEDIATION ANALYSIS: personality
-================================================================================
-  Encoded categorical variable: personality
-  Categories: ['conformist', 'hard-worker', 'hunter-ostentatious', 'thrifty-protector']
-
-Sample size: n = 1161
-
---- TOTAL EFFECT (without mediators) ---
-  Effect coefficient: 0.0067
-  R²: 0.0001
-  p-value: 0.7647
-
---- PATH: Treatment → Food Quality ---
-  Coefficient (a1): 0.0500
-
---- PATH: Treatment → Service Quality ---
-  Coefficient (a2): 0.0165
-
---- CONTROLLING FOR MEDIATORS ---
-  Direct effect (c'): -0.0222
-  Food → Rating (b1): 0.4522
-  Service → Rating (b2): 0.3828
-  R² (with mediators): 0.6014
-
---- INDIRECT EFFECTS ---
-  Via Food Quality: 0.0226
-  Via Service Quality: 0.0063
-  Total Indirect: 0.0289
-
---- PROPORTION OF EFFECT EXPLAINED ---
-  By Food Quality: 335.8% of total effect
-  By Service Quality: 93.9% of total effect
-  Total Mediated: 429.7% of total effect
-  Direct (not via mediators): -329.7% of total effect
-
---- RELATIVE IMPORTANCE OF MEDIATORS ---
-  Food Quality: 78.1% of mediated effect
-  Service Quality: 21.9% of mediated effect
-
---- VARIANCE EXPLAINED ---
-  Treatment alone: R² = 0.0001
-  With mediators: R² = 0.6014
-  Increase from mediators: ΔR² = 0.6013
-
-================================================================================
-MEDIATION ANALYSIS: User_cuisine
-================================================================================
-  Encoded categorical variable: User_cuisine
-  Categories: ['Afghan', 'Afghan;African;American;Armenian;Asian;Australian;Austrian;Bagels;Bakery;Bar;Bar_Pub_Brewery;Barbecue;Basque;Brazilian;Breakfast-Brunch;British;Burgers;Burmese;Cafe-Coffee_Shop;Cafeteria;Cajun-Creole;California;Cambodian;Canadian;Caribbean;Chilean;Chinese;Contemporary;Continental-European;Cuban;Deli-Sandwiches;Dessert-Ice_Cream;Dim_Sum;Diner;Doughnuts;Dutch-Belgian;Eastern_European;Eclectic;Ethiopian;Family;Fast_Food;Filipino;Fine_Dining;French;Fusion;Game;German;Greek;Hawaiian;Hot_Dogs;Hungarian;Indian-Pakistani;Indigenous;Indonesian;International;Irish;Israeli;Italian;Jamaican;Japanese;Juice;Korean;Kosher;Latin_American;Lebanese;Malaysian;Mediterranean;Mexican;Middle_Eastern;Mongolian;Moroccan;North_African;Organic-Healthy;Pacific_Northwest;Pacific_Rim;Persian;Peruvian;Pizzeria;Polish;Polynesian;Portuguese;Regional;Romanian;Russian-Ukrainian;Scandinavian;Seafood;Soup;Southeast_Asian;Southern;Southwestern;Spanish;Steaks;Sushi;Swiss;Tapas;Tea_House;Tex-Mex;Thai;Tibetan;Tunisian;Turkish;Vegetarian;Vietnamese', 'Afghan;Australian;Bar;Burgers;Cafe-Coffee_Shop;Cafeteria;Chinese;Contemporary;Diner;Doughnuts;Family;Hot_Dogs;Italian;Latin_American;Mexican', 'American', 'American;Asian;Burgers;Cafe-Coffee_Shop;Cafeteria;Chinese;Deli-Sandwiches;Dessert-Ice_Cream;Family;Fast_Food;Game;Hot_Dogs;Japanese;Latin_American;Mexican;Pizzeria;Seafood;Sushi', 'American;Barbecue;Cafe-Coffee_Shop;Contemporary;Eastern_European;Fusion;Indian-Pakistani;Japanese;Lebanese;Moroccan;Polish;Polynesian;Portuguese;Regional', 'American;Burgers;Cafe-Coffee_Shop;Cafeteria;Fast_Food;Hot_Dogs;Italian;Juice;Mexican;Pizzeria;Soup;Spanish;Tex-Mex', 'American;Cafe-Coffee_Shop;Cafeteria;Hawaiian;Hot_Dogs;Italian;Juice;Korean;Latin_American;Mexican', 'American;Mexican', 'Bagels;Bakery;Breakfast-Brunch;Cafe-Coffee_Shop;Cafeteria;Contemporary;Continental-European;Japanese;Mexican', 'Bakery', 'Bar', 'Barbecue', 'Breakfast-Brunch', 'Burgers', 'Burgers;Chinese;Pizzeria;Regional', 'Cafe-Coffee_Shop;Cafeteria;Deli-Sandwiches;Diner;Family;Fast_Food;Mexican', 'Cafeteria', 'Cafeteria;Hot_Dogs;Mexican;Pizzeria', 'Chinese', 'Contemporary', 'Cuban', 'Family', 'Fast_Food;Japanese', 'Game', 'Italian', 'Japanese', 'Latin_American', 'Mexican', 'Mexican;Middle_Eastern;Mongolian;Moroccan', 'Pizzeria', 'Regional', 'Sushi', 'Tex-Mex', 'Turkish']
-
-Sample size: n = 1161
-
---- TOTAL EFFECT (without mediators) ---
-  Effect coefficient: 0.0040
-  R²: 0.0020
-  p-value: 0.1309
-
---- PATH: Treatment → Food Quality ---
-  Coefficient (a1): 0.0068
-
---- PATH: Treatment → Service Quality ---
-  Coefficient (a2): 0.0095
-
---- CONTROLLING FOR MEDIATORS ---
-  Direct effect (c'): -0.0028
-  Food → Rating (b1): 0.4501
-  Service → Rating (b2): 0.3868
+  Direct effect (c'): 0.0103
+  Food → Rating (b1): 0.4542
+  Service → Rating (b2): 0.3851
   R² (with mediators): 0.6015
 
 --- INDIRECT EFFECTS ---
-  Via Food Quality: 0.0030
-  Via Service Quality: 0.0037
-  Total Indirect: 0.0067
+  Via Food Quality: -0.0269
+  Via Service Quality: -0.0181
+  Total Indirect: -0.0450
 
 --- PROPORTION OF EFFECT EXPLAINED ---
-  By Food Quality: 77.1% of total effect
-  By Service Quality: 93.0% of total effect
-  Total Mediated: 170.1% of total effect
-  Direct (not via mediators): -70.1% of total effect
+  By Food Quality: 77.5% of total effect
+  By Service Quality: 52.2% of total effect
+  Total Mediated: 129.7% of total effect
+  Direct (not via mediators): -29.7% of total effect
 
 --- RELATIVE IMPORTANCE OF MEDIATORS ---
-  Food Quality: 45.3% of mediated effect
-  Service Quality: 54.7% of mediated effect
+  Food Quality: 59.8% of mediated effect
+  Service Quality: 40.2% of mediated effect
 
 --- VARIANCE EXPLAINED ---
-  Treatment alone: R² = 0.0020
+  Treatment alone: R² = 0.0109
   With mediators: R² = 0.6015
-  Increase from mediators: ΔR² = 0.5995
+  Increase from mediators: ΔR² = 0.5906
+
+================================================================================
+MEDIATION ANALYSIS: Upayment
+================================================================================
+  Encoded categorical variable: Upayment
+  Categories: ['American_Express;VISA', 'American_Express;VISA;bank_debit_cards;cash', 'American_Express;cash', 'MasterCard-Eurocard;VISA;bank_debit_cards;cash', 'MasterCard-Eurocard;VISA;cash', 'MasterCard-Eurocard;cash', 'VISA;bank_debit_cards;cash', 'VISA;cash', 'bank_debit_cards', 'bank_debit_cards;cash', 'cash']
+
+Sample size: n = 1161
+
+--- TOTAL EFFECT (without mediators) ---
+  Effect coefficient: -0.0147
+  R²: 0.0010
+  p-value: 0.2746
+
+--- PATH: Treatment → Food Quality ---
+  Coefficient (a1): -0.0313
+
+--- PATH: Treatment → Service Quality ---
+  Coefficient (a2): -0.0081
+
+--- CONTROLLING FOR MEDIATORS ---
+  Direct effect (c'): 0.0025
+  Food → Rating (b1): 0.4503
+  Service → Rating (b2): 0.3836
+  R² (with mediators): 0.6006
+
+--- INDIRECT EFFECTS ---
+  Via Food Quality: -0.0141
+  Via Service Quality: -0.0031
+  Total Indirect: -0.0172
+
+--- PROPORTION OF EFFECT EXPLAINED ---
+  By Food Quality: 95.7% of total effect
+  By Service Quality: 21.2% of total effect
+  Total Mediated: 116.9% of total effect
+  Direct (not via mediators): -16.9% of total effect
+
+--- RELATIVE IMPORTANCE OF MEDIATORS ---
+  Food Quality: 81.9% of mediated effect
+  Service Quality: 18.1% of mediated effect
+
+--- VARIANCE EXPLAINED ---
+  Treatment alone: R² = 0.0010
+  With mediators: R² = 0.6006
+  Increase from mediators: ΔR² = 0.5996
 
 ====================================================================================================
 SUMMARY: MEDIATION ANALYSIS RESULTS
 ====================================================================================================
 
 All effects and percentages:
-   Treatment    N  Total_Effect  Direct_Effect  Indirect_Food  Indirect_Service  Pct_via_Food  Pct_via_Service  Pct_Mediated  Food_Importance  Service_Importance  R2_Total  R2_Mediated
-   age_group 1161      0.107945      -0.001382       0.060148          0.049179     55.720973        45.559053    101.280026        55.016744           44.983256  0.006686     0.600561
-    activity 1161     -0.259885      -0.032350      -0.137120         -0.090416     52.761647        34.790584     87.552231        60.263053           39.736947  0.013719     0.600768
- personality 1161      0.006734      -0.022202       0.022611          0.006324    335.790724        93.919405    429.710129        78.143544           21.856456  0.000077     0.601396
-User_cuisine 1161      0.003951      -0.002768       0.003045          0.003674     77.064733        92.991200    170.055933        45.317286           54.682714  0.001968     0.601515
+  Treatment    N  Total_Effect  Direct_Effect  Indirect_Food  Indirect_Service  Pct_via_Food  Pct_via_Service  Pct_Mediated  Food_Importance  Service_Importance  R2_Total  R2_Mediated
+drink_level 1161      0.035488      -0.018770       0.017023          0.037235     47.968056       104.924705    152.892762        31.373661           68.626339  0.001350     0.600933
+      color 1161     -0.034676       0.010289      -0.026870         -0.018095     77.487488        52.183265    129.670753        59.757105           40.242895  0.010892     0.601488
+   Upayment 1161     -0.014719       0.002488      -0.014087         -0.003121     95.703923        21.202187    116.906110        81.863919           18.136081  0.001030     0.600589
 
 📊 Mediation plots saved to '/Users/ellandalla/Documents/GitHub/Causal_inference-Case_study/04_Mediation_HTE/results/mediation_results.png'
 
@@ -205,18 +159,18 @@ User_cuisine 1161      0.003951      -0.002768       0.003045          0.003674 
 KEY INSIGHTS
 ================================================================================
 
-✓ Food quality is MOST important for: personality
-  → Explains 78.1% of the mediated effect
+✓ Food quality is MOST important for: Upayment
+  → Explains 81.9% of the mediated effect
 
-✓ Service quality is MOST important for: User_cuisine
-  → Food explains only 45.3% of mediated effect
-  → Service explains 54.7% of mediated effect
+✓ Service quality is MOST important for: drink_level
+  → Food explains only 31.4% of mediated effect
+  → Service explains 68.6% of mediated effect
 
-✓ Most mediated through food/service: personality
-  → 429.7% of total effect goes through mediators
+✓ Most mediated through food/service: drink_level
+  → 152.9% of total effect goes through mediators
 
-✓ Least mediated (most direct): activity
-  → Only 87.6% of effect goes through mediators
+✓ Least mediated (most direct): Upayment
+  → Only 116.9% of effect goes through mediators
 
 ================================================================================
 INTERPRETATION GUIDE
