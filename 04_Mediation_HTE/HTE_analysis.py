@@ -1,4 +1,5 @@
 #%%
+import sys
 import pandas as pd
 import numpy as np
 import statsmodels.api as sm
@@ -16,63 +17,31 @@ _RESULTS_DIR = Path(__file__).resolve().parent / "results"   # 04_Mediation_HTE/
 _RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Canonical pathway map used by decomposition and reporting steps.
+#
+# Re-derived 2026-09-04 against the corrected 1,161-row dataset (one row per
+# rating, fan-out collapsed).  The revised causal graph has 16 edges and 3
+# direct treatments on `rating`: food_rating, service_rating, color.
+# hijos, personality, height, and interest no longer clear the 0.20 association
+# threshold and are absent from the graph.  Pathways here are therefore those
+# reachable via the graph's actual mediator structure:
+#   L0 exogenous → L1 dyadic / L2 mediators (food_rating, service_rating, color,
+#   drink_level) → L3 rating.
 HIJOS_PATHWAYS = {
     "Direct": [
         ("hijos", "rating"),
     ],
     "Via_Food": [
         ("hijos", "food_rating", "rating"),
-        ("hijos", "food_rating", "price", "rating"),
-        ("hijos", "food_rating", "budget", "rating"),
-        ("hijos", "food_rating", "service_rating", "rating"),
-        ("hijos", "food_rating", "drink_level", "rating"),
-        ("hijos", "food_rating", "ambience", "rating"),
-        ("hijos", "food_rating", "dress_preference", "rating"),
-        ("hijos", "food_rating", "smoker", "rating"),
+        ("hijos", "drink_level", "food_rating", "rating"),
+        ("hijos", "color", "food_rating", "rating"),
     ],
     "Via_Service": [
         ("hijos", "service_rating", "rating"),
-        ("hijos", "service_rating", "price", "rating"),
-        ("hijos", "service_rating", "budget", "rating"),
-        ("hijos", "service_rating", "food_rating", "rating"),
-        ("hijos", "service_rating", "drink_level", "rating"),
-        ("hijos", "service_rating", "ambience", "rating"),
-        ("hijos", "service_rating", "dress_preference", "rating"),
-        ("hijos", "service_rating", "smoker", "rating"),
+        ("hijos", "drink_level", "service_rating", "rating"),
+        ("hijos", "color", "service_rating", "rating"),
     ],
     "Via_Color": [
         ("hijos", "color", "rating"),
-        ("hijos", "color", "food_rating", "rating"),
-        ("hijos", "color", "service_rating", "rating"),
-        ("hijos", "color", "ambience", "rating"),
-        ("hijos", "color", "drink_level", "rating"),
-        ("hijos", "color", "dress_preference", "rating"),
-        ("hijos", "color", "price", "rating"),
-        ("hijos", "color", "budget", "rating"),
-    ],
-    "Via_Personality": [
-        ("hijos", "personality", "rating"),
-        ("hijos", "personality", "food_rating", "rating"),
-        ("hijos", "personality", "service_rating", "rating"),
-        ("hijos", "personality", "ambience", "rating"),
-        ("hijos", "personality", "drink_level", "rating"),
-        ("hijos", "personality", "smoker", "rating"),
-    ],
-    "Via_Height": [
-        ("hijos", "height", "rating"),
-        ("hijos", "height", "food_rating", "rating"),
-        ("hijos", "height", "service_rating", "rating"),
-        ("hijos", "height", "price", "rating"),
-        ("hijos", "height", "budget", "rating"),
-        ("hijos", "height", "ambience", "rating"),
-    ],
-    "Via_Interest": [
-        ("hijos", "interest", "rating"),
-        ("hijos", "interest", "food_rating", "rating"),
-        ("hijos", "interest", "service_rating", "rating"),
-        ("hijos", "interest", "drink_level", "rating"),
-        ("hijos", "interest", "dress_preference", "rating"),
-        ("hijos", "interest", "ambience", "rating"),
     ],
 }
 
@@ -114,9 +83,6 @@ def _load_hijos_pathways_from_causal_graph(max_length=4):
             "Via_Food": [],
             "Via_Service": [],
             "Via_Color": [],
-            "Via_Personality": [],
-            "Via_Height": [],
-            "Via_Interest": [],
         }
 
         for path in paths:
@@ -132,12 +98,6 @@ def _load_hijos_pathways_from_causal_graph(max_length=4):
                 grouped["Via_Service"].append(path_tuple)
             elif "color" in mediator_set:
                 grouped["Via_Color"].append(path_tuple)
-            elif "personality" in mediator_set:
-                grouped["Via_Personality"].append(path_tuple)
-            elif "height" in mediator_set:
-                grouped["Via_Height"].append(path_tuple)
-            elif "interest" in mediator_set:
-                grouped["Via_Interest"].append(path_tuple)
             else:
                 grouped["Direct"].append(path_tuple)
 
@@ -160,7 +120,7 @@ class HijosHTEAnalyzer:
     """
     Comprehensive HTE analysis for hijos (having children) impact on rating.
     
-    Handles 43 causal pathways with:
+    Handles causal pathways (derived from the revised 16-edge graph) with:
     1. Total effect estimation
     2. Path-specific decomposition
     3. Inverse probability weighting
@@ -188,7 +148,7 @@ class HijosHTEAnalyzer:
         self.confounders = confounders or []
         
         print("="*80)
-        print("HIJOS HTE ANALYSIS: 43 CAUSAL PATHWAYS")
+        print("HIJOS HTE ANALYSIS")
         print("="*80)
         print(f"Treatment: {treatment} (having children)")
         print(f"Outcome: {outcome}")
@@ -209,7 +169,8 @@ class HijosHTEAnalyzer:
             Total effect estimates
         """
         print("\n" + "="*80)
-        print("STEP 1: TOTAL EFFECT (All 43 Pathways Combined)")
+        n_paths = sum(len(p) for p in HIJOS_PATHWAYS.values())
+        print(f"STEP 1: TOTAL EFFECT (All {n_paths} Pathways Combined)")
         print("="*80)
         
         # Prepare data
@@ -511,14 +472,11 @@ class HijosHTEAnalyzer:
         """
         Decompose total effect into pathway-specific contributions.
         
-        Groups 43 pathways into interpretable categories:
+        Groups pathways (derived from the revised causal graph) into categories:
         - Direct
         - Via Food Quality
         - Via Service Quality
-        - Via Color/Preference
-        - Via Personality
-        - Via Height
-        - Via Interest
+        - Via Color
         
         Returns:
         --------
@@ -526,7 +484,9 @@ class HijosHTEAnalyzer:
             Contribution of each pathway category
         """
         print("\n" + "="*80)
-        print("STEP 4: PATHWAY DECOMPOSITION (43 Pathways → 7 Categories)")
+        n_paths = sum(len(p) for p in HIJOS_PATHWAYS.values())
+        n_cats = len(HIJOS_PATHWAYS)
+        print(f"STEP 4: PATHWAY DECOMPOSITION ({n_paths} Pathways → {n_cats} Categories)")
         print("="*80)
         
         # Get all mediators from pathways
@@ -776,7 +736,8 @@ class HijosHTEAnalyzer:
             
             ax.axhline(y=0, color='black', linestyle='-', linewidth=1)
             ax.set_ylabel('Average Treatment Effect', fontsize=12, fontweight='bold')
-            ax.set_title('Total Effect: Having Children → Rating\n(All 43 Pathways Combined)', 
+            n_paths = sum(len(p) for p in HIJOS_PATHWAYS.values())
+            ax.set_title(f'Total Effect: Having Children → Rating\n(All {n_paths} Pathways Combined)',
                         fontsize=13, fontweight='bold')
             ax.grid(axis='y', alpha=0.3)
             
@@ -826,7 +787,9 @@ class HijosHTEAnalyzer:
             
             ax.axvline(x=0, color='black', linestyle='-', linewidth=1)
             ax.set_xlabel('Indirect Effect Contribution', fontsize=12, fontweight='bold')
-            ax.set_title('Pathway Decomposition\n(7 Categories from 43 Paths)', 
+            n_paths = sum(len(p) for p in HIJOS_PATHWAYS.values())
+            n_cats = len(HIJOS_PATHWAYS)
+            ax.set_title(f'Pathway Decomposition\n({n_cats} Categories from {n_paths} Paths)',
                         fontsize=13, fontweight='bold')
             ax.grid(axis='x', alpha=0.3)
             
@@ -878,7 +841,8 @@ class HijosHTEAnalyzer:
         if hasattr(self, 'total_effect_results'):
             results = self.total_effect_results
             
-            print(f"\n🎯 TOTAL EFFECT (All 43 Pathways):")
+            n_paths = sum(len(p) for p in HIJOS_PATHWAYS.values())
+            print(f"\n🎯 TOTAL EFFECT (All {n_paths} Pathways):")
             print(f"  • Unadjusted ATE: {results['unadjusted_ate']:+.3f}")
             if 'adjusted_ate' in results and results['adjusted_ate'] != results['unadjusted_ate']:
                 print(f"  • Adjusted ATE: {results['adjusted_ate']:+.3f}")
@@ -903,7 +867,8 @@ class HijosHTEAnalyzer:
             pathway_df = self.pathway_decomposition
             
             print(f"\n🛤️  PATHWAY DECOMPOSITION:")
-            print(f"  • 43 pathways grouped into {len(pathway_df)} categories")
+            n_paths = sum(len(p) for p in HIJOS_PATHWAYS.values())
+            print(f"  • {n_paths} pathways grouped into {len(pathway_df)} categories")
             
             if len(pathway_df) > 0:
                 strongest = pathway_df.iloc[0]
@@ -976,9 +941,11 @@ if __name__ == "__main__":
         df = get_initial_data()
         print(f"\nLoaded dataset for HTE analysis: {df.shape}")
 
+        # Confounders are variables present in the revised 16-edge causal graph
+        # that are ancestors of both hijos and rating.  price, smoker,
+        # dress_preference, budget, and ambience are absent from the new graph.
         confounder_candidates = [
-            "food_rating", "service_rating", "price", "smoker",
-            "drink_level", "dress_preference", "budget", "ambience"
+            "food_rating", "service_rating", "color", "drink_level", "Upayment",
         ]
         confounders = [c for c in confounder_candidates if c in df.columns]
 
