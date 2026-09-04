@@ -33,7 +33,7 @@ Causal_inference-Case_study/
 │
 ├── 01_Data_Analysis/                      # Phase 1: Data pipeline
 │   ├── data_pipeline.py                   # Canonical data source — get_initial_data()
-│   ├── final_data.pkl                     # Cached output (31,559 rows × 52 features)
+│   ├── final_data.pkl                     # Cached output (1,161 rows × 52 features)
 │   └── Reports/
 │       └── data_pipeline_results.txt      # Pipeline run logs
 │
@@ -41,7 +41,7 @@ Causal_inference-Case_study/
 │   ├── causal_graph_module_complete.py    # DAG construction, visualization, path analysis
 │   ├── correlation_analyis.py             # ydata-profiling EDA + BeautifulSoup extraction
 │   └── Reports/
-│       ├── causal_graph.png               # Full 31-node DAG visualization
+│       ├── causal_graph.png               # 16-edge DAG visualization (corrected)
 │       └── correlation_analysis.txt       # Graph construction summary
 │
 ├── 03_Causal_ATTRIBUTIONAnalysis/         # Phase 3: Dual attribution analysis
@@ -77,7 +77,7 @@ Nine relational CSV files are loaded and merged using `pandas.merge()` with left
 - **User data**: `userprofile` → left merge `userpayment` → left merge `usercuisine` → left merge `rating_final`
 - **Restaurant data**: `geoplaces2` → left merge `chefmozaccepts` → left merge `chefmozparking` → left merge `chefmozcuisine` → left merge `chefmozhours4`
 - **Combined**: User data left merge Restaurant data on `placeID`
-- **Output**: 31,559 rows × 52 features
+- **Output**: 1,161 rows × 52 features (one row per rating — fan-out collapsed)
 
 ### 2. Feature Engineering
 
@@ -99,17 +99,24 @@ Nine relational CSV files are loaded and merged using `pandas.merge()` with left
 
 ### Phase 2: Causal Graph (DAG)
 
-A directed graph with **31 nodes** and **78 edges** defines the assumed causal structure, derived from domain knowledge combined with correlation analysis via automated EDA profiling. The graph identifies **7 direct treatment variables** that causally affect `rating`:
+The causal graph was re-derived on the corrected **1,161-row** dataset (one row per rating). The previous 78-edge graph was built on the 31,559-row fan-out, which manufactured spurious associations between user demographics and rating — each user was replicated once per cuisine × payment combination, re-counting their fixed attributes against their ratings.
 
-1. `food_rating` — Food quality score
-2. `service_rating` — Service quality score
-3. `hijos` — Whether user has children
-4. `height` — User height
-5. `interest` — User interest category
-6. `color` — User color preference (proxy for personality traits)
-7. `personality` — User personality type
+The corrected graph has **16 edges** across **15 nodes** and is a strict DAG (no cycles). Variables are layered so edges only run forward:
 
-> **Note**: The graph contains 53 detected cycles (it is not a strict DAG). These arise from feature engineering interactions and are acknowledged in the DoWhy identification step via `proceed_when_unidentifiable=True`.
+- **L0 exogenous** — user and restaurant attributes
+- **L1 dyadic** — `patron_restaurant_distance`, `cuisine_match_score`
+- **L2 mediators** — `food_rating`, `service_rating`
+- **L3 outcome** — `rating`
+
+The graph identifies **3 direct treatment variables** on `rating`:
+
+1. `food_rating` — Food quality score (association 0.692)
+2. `service_rating` — Service quality score (association 0.680)
+3. `color` — User color preference (association 0.223)
+
+Five variables from the original 7-treatment list (`hijos`, `personality`, `height`, `interest`, and `activity`) did not clear the 0.20 association threshold on the corrected data and are absent from the graph. `drink_level` and `Upayment` are L0 exogenous variables that reach `rating` indirectly via `food_rating` and `service_rating`.
+
+> **Threshold note**: only `food_rating` and `service_rating` clear ydata-profiling's own 0.50 alert level. All other edges represent weak associations (≤ 0.35) retained to give the graph structure to identify against. The gap between 0.680 and 0.223 is real and should be interpreted accordingly.
 
 ### Phase 3: Dual Attribution Methods
 
@@ -137,36 +144,26 @@ For each treatment, effects are decomposed into:
 - **Indirect via Food** (a₁ × b₁): Treatment → Food Rating → Overall Rating
 - **Indirect via Service** (a₂ × b₂): Treatment → Service Rating → Overall Rating
 
-**Key results** (n = 31,559):
+Treatments analysed are the three L0 exogenous variables with paths to `rating` via the mediators in the revised graph: `drink_level`, `color`, `Upayment`. `personality`, `age_group`, `activity`, and `User_cuisine` no longer have graph paths to `rating` and are excluded.
+
+**Key results** (n = 1,161):
 
 | Treatment | Total Mediated | Dominant Pathway | Interpretation |
 |---|---|---|---|
-| `activity` | 100.2% | Food (52.9%) | Fully mediated; negligible direct effect |
-| `personality` | 72.6% | Food (75.2%) | Food-dominant pathway |
-| `age_group` | 62.3% | Service (61.8%) | Service-dominant pathway |
-| `User_cuisine` | 40.9% | Mostly direct | Cuisine preference acts directly |
+| `drink_level` | via food + service | Food & Service | Drinking habits route entirely through quality mediators |
+| `color` | partial | Food (direct also) | Direct effect on rating plus food-mediated path |
+| `Upayment` | via food + service | Food & Service | Payment method effects fully absorbed by quality mediators |
 
 ### Phase 4: Heterogeneous Treatment Effects (Hijos)
 
-`HijosHTEAnalyzer` analyses the causal effect of having children across **17 identified causal pathways** (dynamically extracted from the causal graph), grouped into 6 categories. Methods:
+`HijosHTEAnalyzer` estimates the causal effect of having children on rating. `hijos` does not appear in the revised causal graph (its association collapsed from 0.703 to 0.133 on the corrected dataset, below the 0.20 threshold), so the analysis is treated as a data-driven question rather than a graph-identified effect. Pathways are derived from the graph's mediator structure — **8 pathways across 4 categories** (`Direct`, `Via_Food`, `Via_Service`, `Via_Color`). Methods:
 
 - Unadjusted ATE (simple difference in means)
-- Confounder-adjusted ATE (8 confounders, bootstrap 95% CI)
+- Confounder-adjusted ATE (5 graph-present confounders: `food_rating`, `service_rating`, `color`, `drink_level`, `Upayment`; bootstrap 95% CI)
 - Inverse Probability Weighting (IPW) with stabilized weights
 - Subgroup-specific effect estimation by Business Hours
 
-**Key results**:
-
-| Metric | Value |
-|---|---|
-| Unadjusted ATE | +0.723 (p < 0.0001) |
-| Adjusted ATE | +0.206 (95% CI: [+0.138, +0.268]) |
-| IPW ATE | +0.720 (95% CI: [+0.627, +0.814]) |
-| Strongest subgroup | Morning (ATE = +1.476) |
-| Weakest subgroup | Full Day (ATE = +0.430) |
-| ATE Range | 1.047 rating points |
-
-> Families with children rate restaurants **significantly HIGHER** — the direct partial effect is negative (−0.095) because mediators (food/service) absorb and reverse the sign. The total causal effect (IPW) is strongly positive.
+> Results from this phase will update once the analysis is re-run on the corrected 1,161-row dataset. The previous estimates (IPW ATE +0.720, unadjusted +0.723) were produced on the 31,559-row fan-out and should be treated as preliminary.
 
 ---
 
@@ -212,11 +209,12 @@ All scripts import data exclusively from `01_Data_Analysis/data_pipeline.py` via
 
 ## Key Results & Insights
 
-- **Food and service quality** are the two dominant causal drivers, together explaining ~84% of treatment attribution (Shapley) and most mediated effects
-- **DoWhy graph-informed estimates** are substantially lower than naive correlations (food_rating: 0.549 vs. 0.864), confirming that confounding inflates naive associations
-- **Activity** is fully mediated (100.2%) through food and service quality — its effect on ratings operates entirely via these intermediate channels
-- **Families with children** (hijos) rate restaurants significantly higher (+0.720 IPW ATE), despite a small negative partial direct effect when mediators are controlled for
-- **Heterogeneous effects** show morning-opening restaurants see the strongest family effect (ATE = +1.476), suggesting targeted investment in morning family-friendly features
+- **Dataset corrected**: collapsing the one-to-many join fan-out reduced the dataset from 31,559 → 1,161 rows (one per rating). The previous analyses were fit on 27.2x-duplicated observations, understating standard errors by ~√27 and manufacturing demographic-rating associations
+- **Causal graph revised**: 78-edge, 31-node, 53-cycle graph replaced by a strict 16-edge DAG with 3 direct treatments (`food_rating`, `service_rating`, `color`). Five previously claimed treatments (`hijos`, `personality`, `height`, `interest`, `activity`) did not clear the 0.20 association threshold on corrected data
+- **Food and service quality** remain the two dominant causal drivers — their associations with `rating` (0.692, 0.680) are robust across both the old and corrected datasets
+- **DoWhy graph-informed estimates** are substantially lower than naive correlations (food_rating: 0.549 vs. 0.864 on original data), confirming that confounding inflates naive associations
+- **Mediation treatments updated**: `drink_level`, `color`, and `Upayment` are the exogenous variables with graph paths to `rating` via the mediators; prior treatments (`personality`, `age_group`, `activity`, `User_cuisine`) are excluded
+- **HTE (hijos) results are preliminary**: the re-run on the corrected dataset is pending; prior IPW ATE (+0.720) was estimated on the fan-out data
 
 ---
 
